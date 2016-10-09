@@ -1,0 +1,148 @@
+---
+title: "Technical comment on Evidence for a limit to human lifespan"
+author: "Philipp Berens"
+date: "October 9, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(plyr)
+library(rstanarm)
+
+```
+
+Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here I present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not. 
+
+## Figure 2a
+
+The authors graph the maximum age reported at death for each year between 1968 and 2006. I acquired the data using WebPlotDigitizer and rounded the numbers to full years (which is what likely was the case for the original data). 
+
+Here is the raw data, as presented by the authors, fitting separate regression for years up to 1994 and after 1995.  
+
+
+```{r, echo=FALSE}
+tbl <- read.csv('lifeexpectancy.csv')
+tbl <- round(tbl)
+tbl$Group <- factor(tbl$Year>=1995, levels = c("FALSE", "TRUE"), labels = c("<1995", ">=1995"))
+
+
+ggplot(tbl,aes(x=Year,y=Age,Color=Group)) + geom_point() + 
+  geom_smooth(method="lm") + 
+  ylab('Yearly maximum reported age at death (years)')  
+
+
+```
+
+## A simple, linear model
+
+We first fit a simple linear model to the data:
+
+```{r, echo=FALSE}
+
+ggplot(tbl,aes(x=Year,y=Age)) + geom_point() + 
+  geom_smooth(method=lm) + 
+  ylab('Yearly maximum reported age at death (years)')  
+
+```
+
+The plots shows the raw data points again, with a linear regression fitted to all the data as well as 95% confidence intervalls. 
+
+```{r}
+
+mdl1 <- lm(Age~Year,tbl)
+summary.lm(mdl)
+
+```
+
+The classical frequentist model fit shows a significant overall p-value, and a significant influence of the factor Year. The regression reveals that the maximum reported age at death (MRAD) increases slightly by `r signif(mdl$coefficients['Year'],digits = 2)` years or  `r signif(mdl$coefficients['Year'],digits = 1)*12` months. 
+
+When inspecting the model fit, we find that a couple of points appear to be systematically missed by the linear model: 
+
+
+## Two group model fitted by the authors
+
+```{r, echo=FALSE}
+
+ggplot(tbl,aes(x=Year,y=Age)) + geom_point() + 
+  geom_smooth(data=tbl,method=lm,formula = Age~Year*Group) + 
+  ylab('Yearly maximum reported age at death (years)')  
+
+```
+
+
+
+
+```{r}
+
+mdl2 <- lm(Age~Year*Group,tbl)
+summary.lm(mdl2)
+
+tbl$AgePred2 <- predict.lm(mdl2, tbl$Year)
+
+ggplot(tbl,aes(x=Year,y=Age)) + geom_point() + 
+  geom_line(data=tbl,aes(x=Year,y=AgePred2)) + 
+  geom_line(data=tbl,aes(x=Year,y=AgePred1)) + 
+  
+  ylab('Yearly maximum reported age at death (years)')  
+
+
+BIC(mdl1)
+BIC(mdl2)
+
+```
+
+difference not worth mentioning
+
+
+##Robust Regression
+```{r}
+
+rmdl1 <- rlm(Age~Year,tbl)
+summary(rmdl1)
+
+rmdl2 <- rlm(Age~Year*Group,tbl)
+summary.lm(rmdl2)
+
+tbl$AgePred2 <- predict.lm(mdl2, tbl$Year)
+
+ggplot(tbl,aes(x=Year,y=Age)) + geom_point() + 
+  geom_line(data=tbl,aes(x=Year,y=AgePred2)) + 
+  geom_line(data=tbl,aes(x=Year,y=AgePred1)) + 
+  
+  ylab('Yearly maximum reported age at death (years)')  
+
+```
+
+
+
+##Bayesian modeling
+
+```{r, cache=TRUE}
+
+bmdl1 <- stan_lm(Age~Year,tbl,prior = R2(location = .5, what="mean"))
+summary(bmdl1)
+
+
+bmdl2 <- stan_lm(Age~Year*Group,tbl,prior = R2(location = .5, what="mean"))
+summary(bmdl2)
+
+loo_bmdl1 <- loo(bmdl1, k_threshold = 0.7)
+
+loo_bmdl2 <- loo(bmdl2, k_threshold = 0.7)
+
+compare(loo_bmdl1,loo_bmdl2)
+
+
+```
+
+Reference https://arxiv.org/abs/1507.04544
+
+
+
+
+
+
+
