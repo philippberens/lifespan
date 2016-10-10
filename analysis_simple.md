@@ -151,14 +151,14 @@ bf1 / bf2
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 1.244826 ±0.56%
+    ## [1] Year * Group : 1.245335 ±0.57%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
     ## ---
     ## Bayes factor type: BFlinearModel, JZS
 
-Under these default priors (assuming for example that both models are equally likely *a priori*), the models receive approximately equal support from the data (the simpler model is favoured by about 1.2-to-1).
+Under these default priors (assuming for example that both models are equally likely *a priori*), the models receive approximately equal support from the data (the Dong et al model is favoured by about 1.2-to-1).
 
 Conclusion
 ----------
