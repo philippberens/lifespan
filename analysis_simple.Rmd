@@ -1,0 +1,152 @@
+---
+title: "Technical comment on Evidence for a limit to human lifespan"
+author: "Philipp Berens"
+date: "October 9, 2016"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(plyr)
+library(rstanarm)
+library(BayesFactor)
+
+```
+
+Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here I present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not. 
+
+## The model by the authors
+
+The authors graph the maximum age reported at death (MRAD) for each year between 1968 and 2006. I acquired the data using WebPlotDigitizer and rounded the numbers to full years (which is what likely was the case for the original data). Originally the data came from the [IDL Database](http://www.supercentenarians.org/). 
+
+Here is the raw data, as presented by the authors, fitting separate regression for years up to 1994 and after 1995.  
+
+
+```{r, echo=FALSE}
+tbl <- read.csv('lifeexpectancy.csv')
+tbl <- round(tbl)
+tbl$Group <- factor(tbl$Year>=1995, levels = c("FALSE", "TRUE"), labels = c("<1995", ">=1995"))
+
+
+ggplot(tbl,aes(x=Year,y=Age,color=Group)) + geom_point() + 
+  geom_smooth(method="lm") + 
+  ylab('Yearly maximum reported age at death (years)')  
+
+
+```
+
+The plot shows the raw data points in black and separate linear fits with 95%-CIs for years before and after 1995. It is not clear from the paper why the authors chose 1995 as a point to separate models. 
+
+We can also obtain the statistics for this model by fitting a linear model with the additional group-variable as predictor including interactions, allowing for a changes slope and offset for the data after 1995.  
+
+```{r}
+
+mdl1 <- lm(Age~Year*Group,tbl)
+summary.lm(mdl1)
+
+```
+
+Consistent with the paper, the fitted model has a slope of `r signif(mdl1$coefficients['Year'],digits = 3)` years for years before 1995 and one of `r signif(mdl1$coefficients['Year']+mdl1$coefficients['Year:Group>=1995'],digits = 3)` for years afterwards (compare their Figure 2a).
+
+
+## A linear model
+
+A simple alternative hypothesis to the claim of the authors would be that MRAD actually keeps increasing and therefore, that there is no limit to human lifespan. To model this idea, we fit a simple linear model to the data:
+
+```{r, echo=FALSE}
+
+ggplot(tbl,aes(x=Year,y=Age)) + geom_point() + 
+  geom_smooth(method=lm) + 
+  ylab('Yearly maximum reported age at death (years)')  
+
+```
+
+The plots shows the raw data points again, with a linear regression with 95% CIs fitted to all the data. 
+
+```{r}
+
+mdl2 <- lm(Age~Year,tbl)
+summary.lm(mdl2)
+
+
+```
+
+In this case, MRAD increases slightly by `r signif(mdl2$coefficients['Year'],digits = 2)` years per year. 
+
+
+## Model comparison
+
+Which model is better? In the paper, the authors fail to provide evidence for their model, they seem to argue that the data looks like there is a saturation effect or a decline in MRAD after 1995.
+
+One can do better and objectively compare the two fitted models. If we look at the output of the models above, the model by the authors explains a little more variance in the data than the linear model (0.42 vs. 0.29). On the other hand, the model also uses four parameters to do so, compared to only two in the linear model.
+
+We can therefore ask if the increase in explained variance is "worth" the additional parameters.
+A number of model comparison metrics exist; in general these weigh the tradeoff between model fit and complexity differently. 
+We present the results of several classical model comparison metrics below.
+
+First, we consider the two models as a nested set and compare them using classical ANOVA.
+
+```{r}
+anova(mdl1, mdl2)
+```
+
+The two extra degrees of freedom in the Dong et al model does not lead to a statistically-significant improvement in residual error over the simple linear model (following the traditional $p < .05$ cutoff for significance).
+
+Another comparison metric with appealing theoretical links to information theory (see Burnham & Anderson, 2002) is the so-called Akaike Information Criterion (AIC). 
+In the AIC, smaller values denote better models.
+
+```{r}
+
+AIC(mdl1)
+AIC(mdl2)
+
+```
+
+Here, the model of Dong et al has the lower AIC and is thus the preferred model. 
+However, following the heuristics suggested by Burnham & Anderson (2002, p.70), an AIC difference of `r signif(AIC(mdl1) - AIC(mdl2), digits=2)` indicates that the data provide "substantial" support for the simpler linear model.
+
+A related model comparison metric is the Bayesian Information Criterion (BIC), which is more conservative than AIC because it additionally penalises models with more parameters.
+
+```{r}
+
+BIC(mdl1)
+BIC(mdl2)
+
+```
+
+Following Kass and Raftery (1993), a BIC difference of `r signif(BIC(mdl1) - BIC(mdl2), digits=2)` is not worth mentioning, providing no evidence of one versus the other model. 
+
+Finally, Bayes Factors (the ratio of the posterior model evidence), can be easily computed to compare simple linear models using the BayesFactor package (Morey & Rouder, 2015).
+
+```{r}
+bf1 <- lmBF(Age~Year*Group, tbl)
+bf2 <- lmBF(Age~Year, tbl)
+
+bf1 / bf2
+```
+
+Under these default priors (assuming for example that both models are equally likely *a priori*), the models receive approximately equal support from the data (the simpler model is favoured by about 1.2-to-1).
+
+## Conclusion
+
+These model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the data do not support the idea that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is supported just as well by the data.
+
+## References
+
+* Kass and Raftery (1993): Bayes Factor, Journal of the American Statistical Assosciation, [link](http://www.tandfonline.com/doi/abs/10.1080/01621459.1995.10476572)
+
+* Vehtari, Gelman and Gabry (2016): Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC, arxiv [link](https://arxiv.org/pdf/1507.04544v5.pdf)
+
+* Burnham, K. P., & Anderson, D. R. (2002): Model selection and multimodel inference a practical information-theoretic approach. New York: Springer. 
+
+* Richard D. Morey and Jeffrey N. Rouder (2015). BayesFactor: Computation of Bayes Factors for Common Designs. R package version 0.9.12-2. https://CRAN.R-project.org/package=BayesFactor
+
+
+
+
+
+
+
+
