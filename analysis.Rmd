@@ -2,7 +2,7 @@
 title: "Technical comment on Evidence for a limit to human lifespan"
 author: "Philipp Berens"
 date: "October 9, 2016"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
