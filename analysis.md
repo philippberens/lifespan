@@ -1,14 +1,14 @@
 Technical comment on Evidence for a limit to human lifespan
 ================
 Philipp Berens and Tom Wallis
-October 9, 2016
+October 11, 2016
 
-Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here I present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not.
+Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here we present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not.
 
 The model by the authors
 ------------------------
 
-The authors graph the maximum age reported at death (MRAD) for each year between 1968 and 2006. I acquired the data using WebPlotDigitizer and rounded the numbers to full years (which is what likely was the case for the original data). Originally the data came from the [IDL Database](http://www.supercentenarians.org/).
+The authors graph the maximum age reported at death (MRAD) for each year between 1968 and 2006. We acquired the data using WebPlotDigitizer and rounded the numbers to full years (which is what likely was the case for the original data). Originally the data came from the [IDL Database](http://www.supercentenarians.org/).
 
 Here is the raw data, as presented by the authors, fitting separate regression for years up to 1994 and after 1995.
 
@@ -44,14 +44,29 @@ summary.lm(mdl1)
     ## Multiple R-squared:  0.4163, Adjusted R-squared:  0.3559 
     ## F-statistic: 6.893 on 3 and 29 DF,  p-value: 0.001209
 
-Consistent with the paper, the fitted model has a slope of 0.153 years for years before 1995 and one of -0.276 for years afterwards (compare their Figure 2a).
+``` r
+# additionally show that you get the same model fit from this combined regression:
+tbl2 <- tbl
+tbl2$yhat <- predict(mdl1)
+
+plt <- ggplot(tbl2, aes(x = Year, y = Age, colour = Group)) +
+  geom_point() + 
+  geom_line(aes(y = yhat)) + 
+  ylab('Yearly maximum reported age at death (years)')  
+
+plt
+```
+
+![](analysis_files/figure-markdown_github/author_model-1.png)
+
+Consistent with the paper, the fitted model has a slope of 0.153 years for years before 1995 and one of -0.276 for years afterwards (compare their Figure 2a). We also plot the regression line from this combined model to show that it is the same as the authors' separate regression fits.
 
 A linear model
 --------------
 
 A simple alternative hypothesis to the claim of the authors would be that MRAD actually keeps increasing and therefore, that there is no limit to human lifespan. To model this idea, we fit a simple linear model to the data:
 
-![](analysis_files/figure-markdown_github/unnamed-chunk-3-1.png)
+![](analysis_files/figure-markdown_github/linear_model-1.png)
 
 The plots shows the raw data points again, with a linear regression with 95% CIs fitted to all the data.
 
@@ -80,6 +95,41 @@ summary.lm(mdl2)
     ## F-statistic: 12.61 on 1 and 31 DF,  p-value: 0.001251
 
 In this case, MRAD increases slightly by 0.12 years per year.
+
+Showing the models side-by-side
+-------------------------------
+
+``` r
+# prepare data:
+tmp1 <- tbl
+tmp2 <- tbl
+tmp1$model <- "Trend break"
+tmp1$yhat <- predict(mdl1)
+tmp2$model <- "Linear"
+tmp2$yhat <- predict(mdl2)
+
+combined_data <- rbind(tmp1, tmp2)
+
+plt <- ggplot(combined_data, aes(x = Year, y = Age, colour = Group)) + 
+  facet_grid(~ model) + 
+  geom_point() +
+  geom_line(aes(y = yhat))
+
+# appearance:
+plt <- plt + 
+  scale_y_continuous(name = "Yearly maximum reported age at death (years)",
+                     breaks = seq(110, 126, by = 2)) + 
+  ylab("Yearly maximum reported age at death (years)") +
+  theme_minimal(base_size = 8) + 
+  theme(panel.grid.major = element_line(colour = "grey90", size = 0.6)) + 
+  theme(panel.margin = unit(2, "lines")) + 
+  scale_color_manual(values = c("#4A87CB", "#E76826"), name = "") + 
+  theme(legend.position = "bottom")
+
+plt
+```
+
+![](analysis_files/figure-markdown_github/combined_plot-1.png)
 
 Model comparison
 ----------------
@@ -144,7 +194,7 @@ BIC(mdl2)
 
     ## [1] 150.6574
 
-Following Kass and Raftery (1993), a BIC difference of 0.49 is not worth mentioning, providing no evidence of one versus the other model.
+Following Raftery (1995), a BIC difference of 0.49 is not worth mentioning, providing no evidence of one versus the other model.
 
 ### Bayes Factors
 
@@ -159,14 +209,16 @@ bf1 / bf2
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 1.243915 ±0.76%
+    ## [1] Year * Group : 1.248852 ±0.56%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
     ## ---
     ## Bayes factor type: BFlinearModel, JZS
 
-Under these default priors (assuming for example that both models are equally likely *a priori*), the models receive approximately equal support from the data (the Dong et al model is favoured by about 1.2-to-1).
+Under these default priors (assuming for example that both models are equally likely *a priori*), the models receive approximately equal support from the data (the Dong et al model is favoured with an odds ratio of 1.24-to-1).
+
+Changing the priors of BayesFactor from "medium" to "ultrawide" on the standardised effect size scale did not appreciably affect these conclusions; with ultrawide effect-size priors the simpler model is now preferred with odds of 1.09-to-1.
 
 ### Bayesian estimation of model parameters
 
@@ -177,6 +229,7 @@ We fit the models using the package `rstanarm`, which allows relatively straight
 ``` r
 bmdl <- stan_glm(Age~Year*Group, tbl, 
                  prior = student_t(5, 0, 2.5), 
+                 prior_intercept = student_t(5, 0, 50),
                  family = gaussian(), 
                  adapt_delta = 0.99)
 ```
@@ -196,9 +249,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 1, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 1, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.558 seconds (Warm-up)
-    ##                0.563 seconds (Sampling)
-    ##                1.121 seconds (Total)
+    ##  Elapsed Time: 0.90537 seconds (Warm-up)
+    ##                0.912955 seconds (Sampling)
+    ##                1.81832 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 2).
@@ -215,9 +268,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 2, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 2, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 2, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.569 seconds (Warm-up)
-    ##                0.558 seconds (Sampling)
-    ##                1.127 seconds (Total)
+    ##  Elapsed Time: 1.114 seconds (Warm-up)
+    ##                1.09402 seconds (Sampling)
+    ##                2.20802 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 3).
@@ -234,9 +287,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 3, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 3, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 3, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.606 seconds (Warm-up)
-    ##                0.61 seconds (Sampling)
-    ##                1.216 seconds (Total)
+    ##  Elapsed Time: 0.895852 seconds (Warm-up)
+    ##                0.843992 seconds (Sampling)
+    ##                1.73984 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 4).
@@ -253,9 +306,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 4, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 4, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 4, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.635 seconds (Warm-up)
-    ##                0.574 seconds (Sampling)
-    ##                1.209 seconds (Total)
+    ##  Elapsed Time: 0.949839 seconds (Warm-up)
+    ##                0.918062 seconds (Sampling)
+    ##                1.8679 seconds (Total)
 
 We can summarize the fitted model and plot the posterior density over the parameters:
 
@@ -263,20 +316,21 @@ We can summarize the fitted model and plot the posterior density over the parame
 plot(bmdl,'dens')
 ```
 
-![](analysis_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](analysis_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
 ``` r
 bmdl
 ```
 
     ## stan_glm(formula = Age ~ Year * Group, family = gaussian(), data = tbl, 
-    ##     prior = student_t(5, 0, 2.5), adapt_delta = 0.99)
+    ##     prior = student_t(5, 0, 2.5), prior_intercept = student_t(5, 
+    ##         0, 50), adapt_delta = 0.99)
     ## 
     ## Estimates:
     ##                  Median MAD_SD
-    ## (Intercept)      -88.0  121.7 
+    ## (Intercept)      -89.7  120.0 
     ## Year               0.1    0.1 
-    ## Group>=1995        0.9    8.8 
+    ## Group>=1995        0.9    8.9 
     ## Year:Group>=1995   0.0    0.0 
     ## sigma              2.2    0.3 
     ## 
@@ -287,7 +341,7 @@ bmdl
     ## 
     ## Observations: 33  Number of unconstrained parameters: 5
 
-Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.101) is similar to the estimated value above (0.153), but shrunken towards zero by the prior. The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
+Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.102) is similar to the estimated value above (0.153), but shrunken towards zero by the prior. The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
 
 ``` r
 draws <- as.data.frame(as.matrix(bmdl))
@@ -313,7 +367,7 @@ base +
   geom_line(data=tbl2,mapping = aes(x=Year, y=Pred),size=1.1)
 ```
 
-![](analysis_files/figure-markdown_github/unnamed-chunk-11-1.png)
+![](analysis_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
 We check certain properties of the Bayesian fitting procedures graphically:
 
@@ -321,20 +375,77 @@ We check certain properties of the Bayesian fitting procedures graphically:
 stan_diag(bmdl)
 ```
 
-![](analysis_files/figure-markdown_github/unnamed-chunk-12-1.png)
+![](analysis_files/figure-markdown_github/unnamed-chunk-9-1.png)
+
+Extended data figure
+--------------------
+
+The authors present a similar dataset from an independent source, the Gerontological Research Group, in Extended Data Figure 6. They find similar results to those reported for the main analysis, and they argue that this provides independent evidence for their central analysis.
+
+We again aquired these data using WebPlotDigitizer, and present them below.
+
+    ## 
+    ## Call:
+    ## lm(formula = Age ~ Year * Group, data = ext_tbl)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -2.5499 -1.0667 -0.2948  0.5918  5.1804 
+    ## 
+    ## Coefficients:
+    ##                    Estimate Std. Error t value Pr(>|t|)   
+    ## (Intercept)      -127.67958   71.86639  -1.777  0.08458 . 
+    ## Year                0.12141    0.03644   3.332  0.00209 **
+    ## Group>=1995       513.76598  169.13487   3.038  0.00456 **
+    ## Year:Group>=1995   -0.25624    0.08462  -3.028  0.00467 **
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 1.66 on 34 degrees of freedom
+    ## Multiple R-squared:  0.6694, Adjusted R-squared:  0.6402 
+    ## F-statistic: 22.95 on 3 and 34 DF,  p-value: 2.654e-08
+
+![](analysis_files/figure-markdown_github/author_model_extended-1.png)
+
+The fitted model has a slope of 0.121 years for years before 1995 (their slope = 0.1194) and one of -0.135 (their slope = -0.1367) for years afterwards (compare their Extended Data Figure 6). Differences to their model fit likely reflect data uncertainty from the digitisation process (owing to the poorer resolution of this figure in the paper).
+
+    ## Analysis of Variance Table
+    ## 
+    ## Model 1: Age ~ Year
+    ## Model 2: Age ~ Year * Group
+    ##   Res.Df     RSS Df Sum of Sq      F   Pr(>F)   
+    ## 1     36 123.789                                
+    ## 2     34  93.689  2      30.1 5.4617 0.008772 **
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+    ## Bayes factor analysis
+    ## --------------
+    ## [1] Year * Group : 8.957058 ±1.11%
+    ## 
+    ## Against denominator:
+    ##   Age ~ Year 
+    ## ---
+    ## Bayes factor type: BFlinearModel, JZS
+
+Here, the ANOVA analysis does provide support for the Dong et al model. What about the other model comparison metrics? The AIC difference between the models is -6.6, which corresponds to "considerably less" support for the simple linear model relative to the authors' model. The BIC difference is -3.3, which provides "positive evidence" (Raftery, 1995) in support of the authors' model. Finally, the Bayes factor computed as above is about 8.8, which also provides positive support for the authors' model.
 
 Conclusion
 ----------
 
-These model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the data do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data.
+These model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the central data reported in the paper do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data from Figure 2a.
+
+The MRAD data from an independent source provided in Extended Data Figure 6 *does* provide some evidence in favour of the Dong et al "trend break" model, with one important caveat: data for the years 1989--1996 are missing from the authors' plot. Since this data spans the key years of the "break", they could have an important influence on these conclusions. The Dong et al paper does not clarify why this data is missing from the authors' plot (compare to data table online [here](http://www.grg.org/Adams/A.HTM), assuming that this is the source of the data the authors use).
 
 References
 ----------
 
 -   Burnham, K. P., & Anderson, D. R. (2002): Model selection and multimodel inference a practical information-theoretic approach. New York: Springer.
 
--   Kass and Raftery (1993): Bayes Factor, Journal of the American Statistical Assosciation, [link](http://www.tandfonline.com/doi/abs/10.1080/01621459.1995.10476572)
+-   Kass, R. E., & Raftery, A. E. (1995). Bayes factors. Journal of the American Statistical Association, 90(430), 773–795.
 
 -   Morey and Rouder (2015). BayesFactor: Computation of Bayes Factors for Common Designs. R package version 0.9.12-2. <https://CRAN.R-project.org/package=BayesFactor>
+
+-   Raftery, A. E. (1995). Bayesian model selection in social research. Sociological Methodology, 111–163.
 
 -   Vehtari, Gelman and Gabry (2016): Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC, arxiv [link](https://arxiv.org/pdf/1507.04544v5.pdf)
