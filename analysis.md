@@ -107,12 +107,19 @@ Following Kass and Raftery (1993), a BIC difference of 0.49 is not worth mention
 Bayesian modeling
 -----------------
 
-Above, we followed a classical frequentist approach towards regression modeling. Alternatively, one can take a Baysian approach and fit linear models of different complexity using Bayesian methods. In this framework, model comparison comes very naturally.
+Above, we followed a classical frequentist approach towards regression modeling. Alternatively, one can take a Baysian approach and fit the full linear model including interaction terms with a student-t prior yielding modest shrinkage of the coefficients towards zero, i.e. performing some variable selection.
 
-We fit the models using the package `rstanarm`, which allows relatively straightforward use of Bayesian methods. We use the build in R2 prior, following the recommendation to set the location parameter to 0.5.
+We fit the models using the package `rstanarm`, which allows relatively straightforward use of Bayesian methods.
+
+``` r
+bmdl <- stan_glm(Age~Year*Group, tbl, 
+                 prior = student_t(5, 0, 2.5), 
+                 family = gaussian(), 
+                 adapt_delta = 0.99)
+```
 
     ## 
-    ## SAMPLING FOR MODEL 'lm' NOW (CHAIN 1).
+    ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 1).
     ## 
     ## Chain 1, Iteration:    1 / 2000 [  0%]  (Warmup)
     ## Chain 1, Iteration:  200 / 2000 [ 10%]  (Warmup)
@@ -126,93 +133,12 @@ We fit the models using the package `rstanarm`, which allows relatively straight
     ## Chain 1, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 1, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 18.974 seconds (Warm-up)
-    ##                26.141 seconds (Sampling)
-    ##                45.115 seconds (Total)
+    ##  Elapsed Time: 0.643 seconds (Warm-up)
+    ##                0.924 seconds (Sampling)
+    ##                1.567 seconds (Total)
     ## 
     ## 
-    ## SAMPLING FOR MODEL 'lm' NOW (CHAIN 2).
-    ## 
-    ## Chain 2, Iteration:    1 / 2000 [  0%]  (Warmup)
-    ## Chain 2, Iteration:  200 / 2000 [ 10%]  (Warmup)
-    ## Chain 2, Iteration:  400 / 2000 [ 20%]  (Warmup)
-    ## Chain 2, Iteration:  600 / 2000 [ 30%]  (Warmup)
-    ## Chain 2, Iteration:  800 / 2000 [ 40%]  (Warmup)
-    ## Chain 2, Iteration: 1000 / 2000 [ 50%]  (Warmup)
-    ## Chain 2, Iteration: 1001 / 2000 [ 50%]  (Sampling)
-    ## Chain 2, Iteration: 1200 / 2000 [ 60%]  (Sampling)
-    ## Chain 2, Iteration: 1400 / 2000 [ 70%]  (Sampling)
-    ## Chain 2, Iteration: 1600 / 2000 [ 80%]  (Sampling)
-    ## Chain 2, Iteration: 1800 / 2000 [ 90%]  (Sampling)
-    ## Chain 2, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 15.579 seconds (Warm-up)
-    ##                20.804 seconds (Sampling)
-    ##                36.383 seconds (Total)
-    ## 
-    ## 
-    ## SAMPLING FOR MODEL 'lm' NOW (CHAIN 3).
-    ## 
-    ## Chain 3, Iteration:    1 / 2000 [  0%]  (Warmup)
-    ## Chain 3, Iteration:  200 / 2000 [ 10%]  (Warmup)
-    ## Chain 3, Iteration:  400 / 2000 [ 20%]  (Warmup)
-    ## Chain 3, Iteration:  600 / 2000 [ 30%]  (Warmup)
-    ## Chain 3, Iteration:  800 / 2000 [ 40%]  (Warmup)
-    ## Chain 3, Iteration: 1000 / 2000 [ 50%]  (Warmup)
-    ## Chain 3, Iteration: 1001 / 2000 [ 50%]  (Sampling)
-    ## Chain 3, Iteration: 1200 / 2000 [ 60%]  (Sampling)
-    ## Chain 3, Iteration: 1400 / 2000 [ 70%]  (Sampling)
-    ## Chain 3, Iteration: 1600 / 2000 [ 80%]  (Sampling)
-    ## Chain 3, Iteration: 1800 / 2000 [ 90%]  (Sampling)
-    ## Chain 3, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 16.307 seconds (Warm-up)
-    ##                17.821 seconds (Sampling)
-    ##                34.128 seconds (Total)
-    ## 
-    ## 
-    ## SAMPLING FOR MODEL 'lm' NOW (CHAIN 4).
-    ## 
-    ## Chain 4, Iteration:    1 / 2000 [  0%]  (Warmup)
-    ## Chain 4, Iteration:  200 / 2000 [ 10%]  (Warmup)
-    ## Chain 4, Iteration:  400 / 2000 [ 20%]  (Warmup)
-    ## Chain 4, Iteration:  600 / 2000 [ 30%]  (Warmup)
-    ## Chain 4, Iteration:  800 / 2000 [ 40%]  (Warmup)
-    ## Chain 4, Iteration: 1000 / 2000 [ 50%]  (Warmup)
-    ## Chain 4, Iteration: 1001 / 2000 [ 50%]  (Sampling)
-    ## Chain 4, Iteration: 1200 / 2000 [ 60%]  (Sampling)
-    ## Chain 4, Iteration: 1400 / 2000 [ 70%]  (Sampling)
-    ## Chain 4, Iteration: 1600 / 2000 [ 80%]  (Sampling)
-    ## Chain 4, Iteration: 1800 / 2000 [ 90%]  (Sampling)
-    ## Chain 4, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 19.962 seconds (Warm-up)
-    ##                17.419 seconds (Sampling)
-    ##                37.381 seconds (Total)
-
-    ## Warning: There were 28 divergent transitions after warmup. Increasing adapt_delta above 0.99 may help. See
-    ## http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-
-    ## Warning: Examine the pairs() plot to diagnose sampling problems
-
-    ## 
-    ## SAMPLING FOR MODEL 'lm' NOW (CHAIN 1).
-    ## 
-    ## Chain 1, Iteration:    1 / 2000 [  0%]  (Warmup)
-    ## Chain 1, Iteration:  200 / 2000 [ 10%]  (Warmup)
-    ## Chain 1, Iteration:  400 / 2000 [ 20%]  (Warmup)
-    ## Chain 1, Iteration:  600 / 2000 [ 30%]  (Warmup)
-    ## Chain 1, Iteration:  800 / 2000 [ 40%]  (Warmup)
-    ## Chain 1, Iteration: 1000 / 2000 [ 50%]  (Warmup)
-    ## Chain 1, Iteration: 1001 / 2000 [ 50%]  (Sampling)
-    ## Chain 1, Iteration: 1200 / 2000 [ 60%]  (Sampling)
-    ## Chain 1, Iteration: 1400 / 2000 [ 70%]  (Sampling)
-    ## Chain 1, Iteration: 1600 / 2000 [ 80%]  (Sampling)
-    ## Chain 1, Iteration: 1800 / 2000 [ 90%]  (Sampling)
-    ## Chain 1, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 2.855 seconds (Warm-up)
-    ##                2.63 seconds (Sampling)
-    ##                5.485 seconds (Total)
-    ## 
-    ## 
-    ## SAMPLING FOR MODEL 'lm' NOW (CHAIN 2).
+    ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 2).
     ## 
     ## Chain 2, Iteration:    1 / 2000 [  0%]  (Warmup)
     ## Chain 2, Iteration:  200 / 2000 [ 10%]  (Warmup)
@@ -226,12 +152,12 @@ We fit the models using the package `rstanarm`, which allows relatively straight
     ## Chain 2, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 2, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 2, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 1.598 seconds (Warm-up)
-    ##                3.756 seconds (Sampling)
-    ##                5.354 seconds (Total)
+    ##  Elapsed Time: 0.622 seconds (Warm-up)
+    ##                0.766 seconds (Sampling)
+    ##                1.388 seconds (Total)
     ## 
     ## 
-    ## SAMPLING FOR MODEL 'lm' NOW (CHAIN 3).
+    ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 3).
     ## 
     ## Chain 3, Iteration:    1 / 2000 [  0%]  (Warmup)
     ## Chain 3, Iteration:  200 / 2000 [ 10%]  (Warmup)
@@ -245,12 +171,12 @@ We fit the models using the package `rstanarm`, which allows relatively straight
     ## Chain 3, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 3, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 3, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 2.873 seconds (Warm-up)
-    ##                2.37 seconds (Sampling)
-    ##                5.243 seconds (Total)
+    ##  Elapsed Time: 0.662 seconds (Warm-up)
+    ##                0.527 seconds (Sampling)
+    ##                1.189 seconds (Total)
     ## 
     ## 
-    ## SAMPLING FOR MODEL 'lm' NOW (CHAIN 4).
+    ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 4).
     ## 
     ## Chain 4, Iteration:    1 / 2000 [  0%]  (Warmup)
     ## Chain 4, Iteration:  200 / 2000 [ 10%]  (Warmup)
@@ -264,184 +190,69 @@ We fit the models using the package `rstanarm`, which allows relatively straight
     ## Chain 4, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 4, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 4, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 2.464 seconds (Warm-up)
-    ##                3.012 seconds (Sampling)
-    ##                5.476 seconds (Total)
+    ##  Elapsed Time: 0.588 seconds (Warm-up)
+    ##                0.631 seconds (Sampling)
+    ##                1.219 seconds (Total)
 
-    ## Warning: There were 1972 divergent transitions after warmup. Increasing adapt_delta above 0.99 may help. See
-    ## http://mc-stan.org/misc/warnings.html#divergent-transitions-after-warmup
-
-    ## Warning: Examine the pairs() plot to diagnose sampling problems
+We can summarize the fitted model and plot the posterior density over the parameters:
 
 ``` r
-summary(bmdl1)
+plot(bmdl,'dens')
 ```
 
-    ## stan_lm(formula = Age ~ Year * Group, data = tbl, prior = R2(location = 0.5, 
-    ##     what = "mean"))
-    ## 
-    ## Family: gaussian (identity)
-    ## Algorithm: sampling
-    ## Posterior sample size: 4000
-    ## Observations: 33
+![](analysis_files/figure-markdown_github/unnamed-chunk-7-1.png)
+
+``` r
+bmdl
+```
+
+    ## stan_glm(formula = Age ~ Year * Group, family = gaussian(), data = tbl, 
+    ##     prior = student_t(5, 0, 2.5), adapt_delta = 0.99)
     ## 
     ## Estimates:
-    ##                    mean   sd     2.5%   25%    50%    75%    97.5%
-    ## (Intercept)      -164.0  115.1 -397.6 -236.6 -166.6  -85.5   65.5 
-    ## Year                0.1    0.1    0.0    0.1    0.1    0.2    0.3 
-    ## Group>=1995       791.3  344.7  126.7  567.3  794.5 1012.9 1467.0 
-    ## Year:Group>=1995   -0.4    0.2   -0.7   -0.5   -0.4   -0.3   -0.1 
-    ## sigma               2.0    0.2    1.6    1.8    2.0    2.1    2.5 
-    ## log-fit_ratio       0.0    0.1   -0.2   -0.1    0.0    0.1    0.3 
-    ## R2                  0.4    0.1    0.1    0.3    0.4    0.5    0.6 
-    ## mean_PPD          113.4    0.5  112.5  113.1  113.4  113.7  114.4 
-    ## log-posterior     -72.2    2.1  -77.1  -73.4  -71.8  -70.6  -69.1 
+    ##                  Median MAD_SD
+    ## (Intercept)      -87.0  119.1 
+    ## Year               0.1    0.1 
+    ## Group>=1995        0.9    8.7 
+    ## Year:Group>=1995   0.0    0.0 
+    ## sigma              2.2    0.3 
     ## 
-    ## Diagnostics:
-    ##                  mcse Rhat n_eff
-    ## (Intercept)      3.2  1.0  1274 
-    ## Year             0.0  1.0  1274 
-    ## Group>=1995      7.1  1.0  2372 
-    ## Year:Group>=1995 0.0  1.0  2369 
-    ## sigma            0.0  1.0  2519 
-    ## log-fit_ratio    0.0  1.0  2038 
-    ## R2               0.0  1.0  1722 
-    ## mean_PPD         0.0  1.0  3715 
-    ## log-posterior    0.1  1.0   866 
+    ## Sample avg. posterior predictive 
+    ## distribution of y (X = xbar):
+    ##          Median MAD_SD
+    ## mean_PPD 113.4    0.5 
     ## 
-    ## For each parameter, mcse is Monte Carlo standard error, n_eff is a crude measure of effective sample size, and Rhat is the potential scale reduction factor on split chains (at convergence Rhat=1).
+    ## Observations: 33  Number of unconstrained parameters: 5
+
+Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.101) is very similar to the estimated value above (0.153). The interaction term on the slope are effectively set to zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
 
 ``` r
-summary(bmdl2)
+draws <- as.data.frame(as.matrix(bmdl))
+X <- draws[1:200,1:4]
+foomdl <- mdl1
+tbl2 <- tbl["Year"]
+
+base <-ggplot(tbl, aes(x = Year, y = Age))
+for (i in 1:200){
+  foomdl$coefficients <- c(X[i,1], X[i,2], X[i,3], X[i,4]) 
+  tbl2["Pred"] <- predict.lm(foomdl,tbl)
+  
+  base <- base + geom_line(data=tbl2,mapping = aes(x=Year, y=Pred), color="skyblue", alpha=0.5,size=1.1)
+}
+
+X = coef(bmdl)
+foomdl$coefficients <- c(X[1], X[2], X[3], X[4]) 
+tbl2["Pred"] <- predict.lm(foomdl,tbl)
+
+
+base + 
+  geom_point() + 
+  geom_line(data=tbl2,mapping = aes(x=Year, y=Pred),size=1.1)
 ```
 
-    ## stan_lm(formula = Age ~ Year, data = tbl, prior = R2(location = 0.5, 
-    ##     what = "mean"))
-    ## 
-    ## Family: gaussian (identity)
-    ## Algorithm: sampling
-    ## Posterior sample size: 4000
-    ## Observations: 33
-    ## 
-    ## Estimates:
-    ##                 mean   sd     2.5%   25%    50%    75%    97.5%
-    ## (Intercept)   -128.4   67.3 -253.1 -173.9 -129.0  -85.1    9.8 
-    ## Year             0.1    0.0    0.1    0.1    0.1    0.1    0.2 
-    ## sigma            2.1    0.3    1.6    1.9    2.1    2.3    2.7 
-    ## log-fit_ratio    0.0    0.1   -0.2   -0.1    0.0    0.1    0.3 
-    ## R2               0.3    0.1    0.1    0.2    0.3    0.3    0.5 
-    ## mean_PPD       113.4    0.5  112.4  113.1  113.4  113.8  114.4 
-    ## log-posterior  -74.1    1.5  -78.0  -74.9  -73.8  -73.1  -72.3 
-    ## 
-    ## Diagnostics:
-    ##               mcse Rhat n_eff
-    ## (Intercept)   3.7  1.0   330 
-    ## Year          0.0  1.0   329 
-    ## sigma         0.0  1.0   621 
-    ## log-fit_ratio 0.0  1.0   436 
-    ## R2            0.0  1.0   352 
-    ## mean_PPD      0.0  1.0  3471 
-    ## log-posterior 0.1  1.0   516 
-    ## 
-    ## For each parameter, mcse is Monte Carlo standard error, n_eff is a crude measure of effective sample size, and Rhat is the potential scale reduction factor on split chains (at convergence Rhat=1).
+![](analysis_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
-Comparing the fitted model to the frequentist models above shows that the posterior modes of the coefficients are very similar to the estimated values above.
-
-For model comparison, we follow Vehtari et al. (2015) and compute a leave-one-out estimate of the prediction error from the fitted model.
-
-``` r
-loo_bmdl1 <- loo(bmdl1, k_threshold = 0.7)
-```
-
-    ## 2 problematic observation(s) found.
-    ## Model will be refit 2 times.
-
-    ## 
-    ## Fitting model 1 out of 2 (leaving out observation 1)
-
-    ## 
-    ##  Elapsed Time: 15.949 seconds (Warm-up)
-    ##                14.727 seconds (Sampling)
-    ##                30.676 seconds (Total)
-    ## 
-    ## 
-    ##  Elapsed Time: 16.723 seconds (Warm-up)
-    ##                11.081 seconds (Sampling)
-    ##                27.804 seconds (Total)
-    ## 
-    ## 
-    ##  Elapsed Time: 14.54 seconds (Warm-up)
-    ##                14.308 seconds (Sampling)
-    ##                28.848 seconds (Total)
-    ## 
-    ## 
-    ##  Elapsed Time: 16.686 seconds (Warm-up)
-    ##                9.658 seconds (Sampling)
-    ##                26.344 seconds (Total)
-
-    ## 
-    ## Fitting model 2 out of 2 (leaving out observation 10)
-
-    ## 
-    ##  Elapsed Time: 17.006 seconds (Warm-up)
-    ##                10.87 seconds (Sampling)
-    ##                27.876 seconds (Total)
-    ## 
-    ## 
-    ##  Elapsed Time: 19.91 seconds (Warm-up)
-    ##                12.284 seconds (Sampling)
-    ##                32.194 seconds (Total)
-    ## 
-    ## 
-    ##  Elapsed Time: 17.367 seconds (Warm-up)
-    ##                12.269 seconds (Sampling)
-    ##                29.636 seconds (Total)
-    ## 
-    ## 
-    ##  Elapsed Time: 20.926 seconds (Warm-up)
-    ##                14.416 seconds (Sampling)
-    ##                35.342 seconds (Total)
-
-``` r
-loo_bmdl2 <- loo(bmdl2, k_threshold = 0.7)
-```
-
-    ## 1 problematic observation(s) found.
-    ## Model will be refit 1 times.
-
-    ## 
-    ## Fitting model 1 out of 1 (leaving out observation 1)
-
-    ## 
-    ##  Elapsed Time: 4.209 seconds (Warm-up)
-    ##                2.675 seconds (Sampling)
-    ##                6.884 seconds (Total)
-    ## 
-    ## 
-    ##  Elapsed Time: 2.565 seconds (Warm-up)
-    ##                6.246 seconds (Sampling)
-    ##                8.811 seconds (Total)
-    ## 
-    ## 
-    ##  Elapsed Time: 2.768 seconds (Warm-up)
-    ##                2.884 seconds (Sampling)
-    ##                5.652 seconds (Total)
-    ## 
-    ## 
-    ##  Elapsed Time: 2.788 seconds (Warm-up)
-    ##                2.919 seconds (Sampling)
-    ##                5.707 seconds (Total)
-
-``` r
-compare(loo_bmdl1,loo_bmdl2)
-```
-
-    ## elpd_diff        se 
-    ##      -0.3       3.9
-
-The comparison shows that there is not evidence for the model by the authors, in agreement with the frequentist results above.
-
-TODO: Diagnostic plots for the fits
+We check certain properties of the Bayesian fitting procedures graphically:
 
 Conclusion
 ----------

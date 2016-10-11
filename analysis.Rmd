@@ -95,48 +95,62 @@ Following Kass and Raftery (1993), a BIC difference of `r signif(BIC(mdl1) - BIC
 
 ## Bayesian modeling
 
-Above, we followed a classical frequentist approach towards regression modeling. Alternatively, one can take a Baysian approach and fit linear models of different complexity using Bayesian methods. In this framework, model comparison comes very naturally. 
+Above, we followed a classical frequentist approach towards regression modeling. Alternatively, one can take a Baysian approach and fit the full linear model including interaction terms with a student-t prior yielding modest shrinkage of the coefficients towards zero, i.e. performing some variable selection. 
 
-We fit the models using the package `rstanarm`, which allows relatively straightforward use of Bayesian methods. We use the build in R2 prior, following the recommendation to set the location parameter to 0.5. 
-
-```{r, cache=TRUE, echo=FALSE}
-
-# model by the authors
-bmdl1 <- stan_lm(Age~Year*Group,tbl,prior = R2(location = .5, what="mean"))
-
-# linear model
-bmdl2 <- stan_lm(Age~Year,tbl,prior = R2(location = .5, what="mean"))
-
-```
-
+We fit the models using the package `rstanarm`, which allows relatively straightforward use of Bayesian methods.  
 
 ```{r}
 
-summary(bmdl1)
-summary(bmdl2)
-
-
-```
-
-
-Comparing the fitted model to the frequentist models above shows that the posterior modes of the coefficients are very similar to the estimated values above.
-
-For model comparison, we follow Vehtari et al. (2015) and compute a leave-one-out estimate of the prediction error from the fitted model.  
-
-
-```{r, cache=TRUE}
-
-loo_bmdl1 <- loo(bmdl1, k_threshold = 0.7)
-
-loo_bmdl2 <- loo(bmdl2, k_threshold = 0.7)
-
-compare(loo_bmdl1,loo_bmdl2)
+bmdl <- stan_glm(Age~Year*Group, tbl, 
+                 prior = student_t(5, 0, 2.5), 
+                 family = gaussian(), 
+                 adapt_delta = 0.99)
 
 ```
 
-The comparison shows that there is not evidence for the model by the authors, in agreement with the frequentist results above.
+We can summarize the fitted model and plot the posterior density over the parameters:
 
-TODO: Diagnostic plots for the fits
+```{r}
+
+plot(bmdl,'dens')
+
+bmdl
+```
+
+Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (`r signif(bmdl$coefficients['Year'],digits=3)`) is very similar to the estimated value above (`r signif(mdl1$coefficients['Year'],digits=3)`). 
+The interaction term on the slope are effectively set to zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by `r signif(mdl1$coefficients['Group>=1995'],digits=1)`. This is likely an artefact of the model parametrization.
+
+
+```{r}
+draws <- as.data.frame(as.matrix(bmdl))
+X <- draws[1:200,1:4]
+foomdl <- mdl1
+tbl2 <- tbl["Year"]
+
+base <-ggplot(tbl, aes(x = Year, y = Age))
+for (i in 1:200){
+  foomdl$coefficients <- c(X[i,1], X[i,2], X[i,3], X[i,4]) 
+  tbl2["Pred"] <- predict.lm(foomdl,tbl)
+  
+  base <- base + geom_line(data=tbl2,mapping = aes(x=Year, y=Pred), color="skyblue", alpha=0.5,size=1.1)
+}
+
+X = coef(bmdl)
+foomdl$coefficients <- c(X[1], X[2], X[3], X[4]) 
+tbl2["Pred"] <- predict.lm(foomdl,tbl)
+
+
+base + 
+  geom_point() + 
+  geom_line(data=tbl2,mapping = aes(x=Year, y=Pred),size=1.1)
+
+
+  
+```
+
+We check certain properties of the Bayesian fitting procedures graphically:
+
+
 
 
 ## Conclusion
