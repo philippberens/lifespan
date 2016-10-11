@@ -41,7 +41,7 @@ The plot shows the raw data points in black and separate linear fits with 95%-CI
 
 We can also obtain the statistics for this model by fitting a linear model with the additional group-variable as predictor including interactions, allowing for a changes slope and offset for the data after 1995.  
 
-```{r}
+```{r author_model}
 
 mdl1 <- lm(Age~Year*Group,tbl)
 summary.lm(mdl1)
@@ -66,7 +66,7 @@ We also plot the regression line from this combined model to show that it is the
 
 A simple alternative hypothesis to the claim of the authors would be that MRAD actually keeps increasing and therefore, that there is no limit to human lifespan. To model this idea, we fit a simple linear model to the data:
 
-```{r, echo=FALSE}
+```{r, linear_model, echo=FALSE}
 
 ggplot(tbl,aes(x=Year,y=Age)) + geom_point() + 
   geom_smooth(method=lm) + 
@@ -133,7 +133,7 @@ BIC(mdl2)
 
 ```
 
-Following Kass and Raftery (1993), a BIC difference of `r signif(BIC(mdl1) - BIC(mdl2), digits=2)` is not worth mentioning, providing no evidence of one versus the other model. 
+Following Raftery (1995), a BIC difference of `r signif(BIC(mdl1) - BIC(mdl2), digits=2)` is not worth mentioning, providing no evidence of one versus the other model. 
 
 ### Bayes Factors
 
@@ -146,7 +146,7 @@ bf2 <- lmBF(Age~Year, tbl)
 bf1 / bf2
 ```
 
-Under these default priors (assuming for example that both models are equally likely *a priori*), the models receive approximately equal support from the data (the Dong et al model is favoured by about 1.2-to-1).
+Under these default priors (assuming for example that both models are equally likely *a priori*), the models receive approximately equal support from the data (the Dong et al model is favoured with an odds ratio of 1.24-to-1).
 
 ### Bayesian estimation of model parameters
 
@@ -213,17 +213,76 @@ stan_diag(bmdl)
 
 
 
+
+## Extended data figure
+
+The authors present a similar dataset from an independent source, the Gerontological Research Group, in Extended Data Figure 6.
+They find similar results to those reported for the main analysis, and they argue that this provides independent evidence for their central analysis.
+
+We again aquired these data using WebPlotDigitizer, and present them below.
+
+```{r extended_data_import, echo=FALSE}
+ext_tbl <- read.csv('extended_data_6.csv')
+ext_tbl <- round(ext_tbl)
+ext_tbl$Group <- factor(ext_tbl$Year>=1995, levels = c("FALSE", "TRUE"), labels = c("<1995", ">=1995"))
+
+```
+
+```{r author_model_extended, echo=FALSE}
+
+ext_mdl1 <- lm(Age~Year*Group,ext_tbl)
+summary.lm(ext_mdl1)
+
+# additionally show that you get the same model fit from this combined regression:
+blah <- ext_tbl
+blah$yhat <- predict(ext_mdl1)
+
+plt <- ggplot(blah, aes(x = Year, y = Age, colour = Group)) +
+  geom_point() + 
+  geom_line(aes(y = yhat)) + 
+  ylab('Yearly maximum reported age at death (years)')  
+
+plt
+```
+
+The fitted model has a slope of `r signif(ext_mdl1$coefficients['Year'],digits = 3)` years for years before 1995 (their slope = 0.1194) and one of `r signif(ext_mdl1$coefficients['Year']+ext_mdl1$coefficients['Year:Group>=1995'],digits = 3)` (their slope = -0.1367) for years afterwards (compare their Extended Data Figure 6).
+Differences to their model fit likely reflect data uncertainty from the digitisation process (owing to the poorer resolution of this figure in the paper).
+
+```{r extended_data_lm, echo=FALSE}
+ext_mdl2 <- lm(Age~Year,ext_tbl)
+
+anova(ext_mdl2, ext_mdl1)
+
+ext_bf1 <- lmBF(Age~Year*Group, ext_tbl)
+ext_bf2 <- lmBF(Age~Year, ext_tbl)
+
+ext_bf1 / ext_bf2
+
+```
+
+Here, the ANOVA analysis does provide support for the Dong et al model.
+What about the other model comparison metrics?
+The AIC difference between the models is `r signif(AIC(ext_mdl1) - AIC(ext_mdl2), digits=2)`, which corresponds to "considerably less" support for the simple linear model relative to the authors' model.
+The BIC difference is `r signif(BIC(ext_mdl1) - BIC(ext_mdl2), digits=2)`, which provides "positive evidence" (Raftery, 1995) in support of the authors' model.
+Finally, the Bayes factor computed as above is about 8.8, which also provides positive support for the authors' model.
+
 ## Conclusion
 
-These model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the data do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data.
+These model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the central data reported in the paper do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data from Figure 2a.
+
+The MRAD data from an independent source provided in Extended Data Figure 6 *does* provide some evidence in favour of the Dong et al "trend break" model, with one important caveat: data for the years 1989--1996 are missing from the authors' plot. 
+Since this data spans the key years of the "break", they could have an important influence on these conclusions.
+The Dong et al paper does not clarify why this data is missing from the authors' plot (compare to data table online [here](http://www.grg.org/Adams/A.HTM), assuming that this is the source of the data the authors use).
 
 ## References
 
 * Burnham, K. P., & Anderson, D. R. (2002): Model selection and multimodel inference a practical information-theoretic approach. New York: Springer. 
 
-* Kass and Raftery (1993): Bayes Factor, Journal of the American Statistical Assosciation, [link](http://www.tandfonline.com/doi/abs/10.1080/01621459.1995.10476572)
+* Kass, R. E., & Raftery, A. E. (1995). Bayes factors. Journal of the American Statistical Association, 90(430), 773–795.
 
 * Morey and Rouder (2015). BayesFactor: Computation of Bayes Factors for Common Designs. R package version 0.9.12-2. https://CRAN.R-project.org/package=BayesFactor
+
+* Raftery, A. E. (1995). Bayesian model selection in social research. Sociological Methodology, 111–163.
 
 * Vehtari, Gelman and Gabry (2016): Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC, arxiv [link](https://arxiv.org/pdf/1507.04544v5.pdf)
 
