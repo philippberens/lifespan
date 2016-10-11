@@ -1,6 +1,6 @@
 ---
 title: "Technical comment on Evidence for a limit to human lifespan"
-author: "Philipp Berens"
+author: "Philipp Berens and Tom Wallis"
 date: "October 9, 2016"
 output: github_document
 ---
@@ -10,8 +10,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(ggplot2)
 library(plyr)
+library(rstan)
 library(rstanarm)
-
+library(BayesFactor)
 ```
 
 Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here I present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not. 
@@ -81,8 +82,38 @@ Which model is better? In the paper, the authors fail to provide evidence for th
 
 One can do better and objectively compare the two fitted models. If we look at the output of the models above, the model by the authors explains a little more variance in the data than the linear model (0.42 vs. 0.29). On the other hand, the model also uses four parameters to do so, compared to only two in the linear model.
 
-We can therefore ask if the increase in explained variance is "worth" the additional parameters, e.g. by comparing the Bayesian Information Criterion (BIC) of the two models. This is a goodness of fit measure penalized for the number of parameters.
+We can therefore ask if the increase in explained variance is "worth" the additional parameters.
+A number of model comparison metrics exist; in general these weigh the tradeoff between model fit and complexity differently. 
+We present the results of several classical model comparison metrics below.
 
+### Classical ANOVA
+
+First, we consider the two models as a nested set and compare them using classical ANOVA.
+
+```{r}
+anova(mdl2, mdl1)
+```
+
+The two extra degrees of freedom in the Dong et al model does not lead to a statistically-significant improvement in residual error over the simple linear model (following the traditional $p < .05$ cutoff for significance).
+
+### AIC
+
+Another comparison metric with appealing theoretical links to information theory (see Burnham & Anderson, 2002) is the so-called Akaike Information Criterion (AIC). 
+In the AIC, smaller values denote better models.
+
+```{r}
+
+AIC(mdl1)
+AIC(mdl2)
+
+```
+
+Here, the model of Dong et al has the lower AIC and is thus the preferred model. 
+However, following the heuristics suggested by Burnham & Anderson (2002, p.70), an AIC difference of `r signif(AIC(mdl1) - AIC(mdl2), digits=2)` indicates that the data provide "substantial" support for the simpler linear model.
+
+### BIC
+
+A related model comparison metric is the Bayesian Information Criterion (BIC), which is more conservative than AIC because it additionally penalises models with more parameters.
 
 ```{r}
 
@@ -93,9 +124,23 @@ BIC(mdl2)
 
 Following Kass and Raftery (1993), a BIC difference of `r signif(BIC(mdl1) - BIC(mdl2), digits=2)` is not worth mentioning, providing no evidence of one versus the other model. 
 
-## Bayesian modeling
+### Bayes Factors
 
-Above, we followed a classical frequentist approach towards regression modeling. Alternatively, one can take a Baysian approach and fit the full linear model including interaction terms with a student-t prior yielding modest shrinkage of the coefficients towards zero, i.e. performing some variable selection. 
+Finally, Bayes Factors (the ratio of the posterior model evidence), can be easily computed to compare simple linear models using the BayesFactor package (Morey & Rouder, 2015).
+
+```{r}
+bf1 <- lmBF(Age~Year*Group, tbl)
+bf2 <- lmBF(Age~Year, tbl)
+
+bf1 / bf2
+```
+
+Under these default priors (assuming for example that both models are equally likely *a priori*), the models receive approximately equal support from the data (the Dong et al model is favoured by about 1.2-to-1).
+
+### Bayesian estimation of model parameters
+
+Here we take a Baysian approach to model estimation, and fit the full linear model including interaction terms.
+We employ a Student-t prior with a mean of zero, standard deviation of 2.5 and five degrees of freedom, which yields modest shrinkage of the coefficients towards zero, i.e. enforcing some conservatism in inference.  
 
 We fit the models using the package `rstanarm`, which allows relatively straightforward use of Bayesian methods.  
 
@@ -117,8 +162,9 @@ plot(bmdl,'dens')
 bmdl
 ```
 
-Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (`r signif(bmdl$coefficients['Year'],digits=3)`) is very similar to the estimated value above (`r signif(mdl1$coefficients['Year'],digits=3)`). 
-The interaction term on the slope are effectively set to zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by `r signif(mdl1$coefficients['Group>=1995'],digits=1)`. This is likely an artefact of the model parametrization.
+Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (`r signif(bmdl$coefficients['Year'],digits=3)`) is similar to the estimated value above (`r signif(mdl1$coefficients['Year'],digits=3)`), but shrunken towards zero by the prior. 
+The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. 
+There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by `r signif(mdl1$coefficients['Group>=1995'],digits=1)`. This is likely an artefact of the model parametrization.
 
 
 ```{r}
@@ -144,27 +190,31 @@ base +
   geom_point() + 
   geom_line(data=tbl2,mapping = aes(x=Year, y=Pred),size=1.1)
 
-
-  
 ```
 
 We check certain properties of the Bayesian fitting procedures graphically:
 
+```{r}
+
+stan_diag(bmdl)
+
+```
 
 
 
 ## Conclusion
 
-TODO
+These model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the data do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data.
 
 ## References
 
+* Burnham, K. P., & Anderson, D. R. (2002): Model selection and multimodel inference a practical information-theoretic approach. New York: Springer. 
+
 * Kass and Raftery (1993): Bayes Factor, Journal of the American Statistical Assosciation, [link](http://www.tandfonline.com/doi/abs/10.1080/01621459.1995.10476572)
 
+* Morey and Rouder (2015). BayesFactor: Computation of Bayes Factors for Common Designs. R package version 0.9.12-2. https://CRAN.R-project.org/package=BayesFactor
+
 * Vehtari, Gelman and Gabry (2016): Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC, arxiv [link](https://arxiv.org/pdf/1507.04544v5.pdf)
-
-
-
 
 
 

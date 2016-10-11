@@ -3,3 +3,6 @@ ggplot2
 plyr
 Rcpp
 rstanarm
+coda
+Matrix
+BayesFactor

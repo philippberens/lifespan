@@ -1,6 +1,6 @@
 Technical comment on Evidence for a limit to human lifespan
 ================
-Philipp Berens
+Philipp Berens and Tom Wallis
 October 9, 2016
 
 Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here I present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not.
@@ -88,7 +88,49 @@ Which model is better? In the paper, the authors fail to provide evidence for th
 
 One can do better and objectively compare the two fitted models. If we look at the output of the models above, the model by the authors explains a little more variance in the data than the linear model (0.42 vs. 0.29). On the other hand, the model also uses four parameters to do so, compared to only two in the linear model.
 
-We can therefore ask if the increase in explained variance is "worth" the additional parameters, e.g. by comparing the Bayesian Information Criterion (BIC) of the two models. This is a goodness of fit measure penalized for the number of parameters.
+We can therefore ask if the increase in explained variance is "worth" the additional parameters. A number of model comparison metrics exist; in general these weigh the tradeoff between model fit and complexity differently. We present the results of several classical model comparison metrics below.
+
+### Classical ANOVA
+
+First, we consider the two models as a nested set and compare them using classical ANOVA.
+
+``` r
+anova(mdl2, mdl1)
+```
+
+    ## Analysis of Variance Table
+    ## 
+    ## Model 1: Age ~ Year
+    ## Model 2: Age ~ Year * Group
+    ##   Res.Df    RSS Df Sum of Sq     F  Pr(>F)  
+    ## 1     31 135.12                             
+    ## 2     29 110.95  2    24.171 3.159 0.05739 .
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+The two extra degrees of freedom in the Dong et al model does not lead to a statistically-significant improvement in residual error over the simple linear model (following the traditional \(p < .05\) cutoff for significance).
+
+### AIC
+
+Another comparison metric with appealing theoretical links to information theory (see Burnham & Anderson, 2002) is the so-called Akaike Information Criterion (AIC). In the AIC, smaller values denote better models.
+
+``` r
+AIC(mdl1)
+```
+
+    ## [1] 143.6636
+
+``` r
+AIC(mdl2)
+```
+
+    ## [1] 146.1678
+
+Here, the model of Dong et al has the lower AIC and is thus the preferred model. However, following the heuristics suggested by Burnham & Anderson (2002, p.70), an AIC difference of -2.5 indicates that the data provide "substantial" support for the simpler linear model.
+
+### BIC
+
+A related model comparison metric is the Bayesian Information Criterion (BIC), which is more conservative than AIC because it additionally penalises models with more parameters.
 
 ``` r
 BIC(mdl1)
@@ -104,10 +146,31 @@ BIC(mdl2)
 
 Following Kass and Raftery (1993), a BIC difference of 0.49 is not worth mentioning, providing no evidence of one versus the other model.
 
-Bayesian modeling
------------------
+### Bayes Factors
 
-Above, we followed a classical frequentist approach towards regression modeling. Alternatively, one can take a Baysian approach and fit the full linear model including interaction terms with a student-t prior yielding modest shrinkage of the coefficients towards zero, i.e. performing some variable selection.
+Finally, Bayes Factors (the ratio of the posterior model evidence), can be easily computed to compare simple linear models using the BayesFactor package (Morey & Rouder, 2015).
+
+``` r
+bf1 <- lmBF(Age~Year*Group, tbl)
+bf2 <- lmBF(Age~Year, tbl)
+
+bf1 / bf2
+```
+
+    ## Bayes factor analysis
+    ## --------------
+    ## [1] Year * Group : 1.242026 ±0.54%
+    ## 
+    ## Against denominator:
+    ##   Age ~ Year 
+    ## ---
+    ## Bayes factor type: BFlinearModel, JZS
+
+Under these default priors (assuming for example that both models are equally likely *a priori*), the models receive approximately equal support from the data (the Dong et al model is favoured by about 1.2-to-1).
+
+### Bayesian estimation of model parameters
+
+Here we take a Baysian approach to model estimation, and fit the full linear model including interaction terms. We employ a Student-t prior with a mean of zero, standard deviation of 2.5 and five degrees of freedom, which yields modest shrinkage of the coefficients towards zero, i.e. enforcing some conservatism in inference.
 
 We fit the models using the package `rstanarm`, which allows relatively straightforward use of Bayesian methods.
 
@@ -133,9 +196,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 1, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 1, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.643 seconds (Warm-up)
-    ##                0.924 seconds (Sampling)
-    ##                1.567 seconds (Total)
+    ##  Elapsed Time: 1.01314 seconds (Warm-up)
+    ##                1.01499 seconds (Sampling)
+    ##                2.02812 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 2).
@@ -152,9 +215,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 2, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 2, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 2, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.622 seconds (Warm-up)
-    ##                0.766 seconds (Sampling)
-    ##                1.388 seconds (Total)
+    ##  Elapsed Time: 1.15534 seconds (Warm-up)
+    ##                1.04143 seconds (Sampling)
+    ##                2.19677 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 3).
@@ -171,9 +234,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 3, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 3, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 3, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.662 seconds (Warm-up)
-    ##                0.527 seconds (Sampling)
-    ##                1.189 seconds (Total)
+    ##  Elapsed Time: 0.956411 seconds (Warm-up)
+    ##                0.965434 seconds (Sampling)
+    ##                1.92185 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 4).
@@ -190,9 +253,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 4, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 4, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 4, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.588 seconds (Warm-up)
-    ##                0.631 seconds (Sampling)
-    ##                1.219 seconds (Total)
+    ##  Elapsed Time: 1.02202 seconds (Warm-up)
+    ##                1.18632 seconds (Sampling)
+    ##                2.20833 seconds (Total)
 
 We can summarize the fitted model and plot the posterior density over the parameters:
 
@@ -200,7 +263,7 @@ We can summarize the fitted model and plot the posterior density over the parame
 plot(bmdl,'dens')
 ```
 
-![](analysis_files/figure-markdown_github/unnamed-chunk-7-1.png)
+![](analysis_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
 ``` r
 bmdl
@@ -211,9 +274,9 @@ bmdl
     ## 
     ## Estimates:
     ##                  Median MAD_SD
-    ## (Intercept)      -87.0  119.1 
+    ## (Intercept)      -93.7  119.4 
     ## Year               0.1    0.1 
-    ## Group>=1995        0.9    8.7 
+    ## Group>=1995        0.4    8.9 
     ## Year:Group>=1995   0.0    0.0 
     ## sigma              2.2    0.3 
     ## 
@@ -224,7 +287,7 @@ bmdl
     ## 
     ## Observations: 33  Number of unconstrained parameters: 5
 
-Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.101) is very similar to the estimated value above (0.153). The interaction term on the slope are effectively set to zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
+Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.104) is similar to the estimated value above (0.153), but shrunken towards zero by the prior. The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
 
 ``` r
 draws <- as.data.frame(as.matrix(bmdl))
@@ -250,18 +313,28 @@ base +
   geom_line(data=tbl2,mapping = aes(x=Year, y=Pred),size=1.1)
 ```
 
-![](analysis_files/figure-markdown_github/unnamed-chunk-8-1.png)
+![](analysis_files/figure-markdown_github/unnamed-chunk-11-1.png)
 
 We check certain properties of the Bayesian fitting procedures graphically:
+
+``` r
+stan_diag(bmdl)
+```
+
+![](analysis_files/figure-markdown_github/unnamed-chunk-12-1.png)
 
 Conclusion
 ----------
 
-TODO
+These model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the data do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data.
 
 References
 ----------
 
+-   Burnham, K. P., & Anderson, D. R. (2002): Model selection and multimodel inference a practical information-theoretic approach. New York: Springer.
+
 -   Kass and Raftery (1993): Bayes Factor, Journal of the American Statistical Assosciation, [link](http://www.tandfonline.com/doi/abs/10.1080/01621459.1995.10476572)
+
+-   Morey and Rouder (2015). BayesFactor: Computation of Bayes Factors for Common Designs. R package version 0.9.12-2. <https://CRAN.R-project.org/package=BayesFactor>
 
 -   Vehtari, Gelman and Gabry (2016): Practical Bayesian model evaluation using leave-one-out cross-validation and WAIC, arxiv [link](https://arxiv.org/pdf/1507.04544v5.pdf)
