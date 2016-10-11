@@ -316,11 +316,13 @@ Finally, the Bayes factor computed as above is about 8.8, which also provides po
 
 # Conclusion
 
-These model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the central data reported in the paper do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data from Figure 2a.
+Our model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the central data reported in the paper do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data from Figure 2a.
 
 The MRAD data from an independent source provided in Extended Data Figure 6 *does* provide some evidence in favour of the Dong et al "trend break" model, with one important caveat: data for the years 1989--1996 are missing from the authors' plot. 
 Since this data spans the key years of the "break", they could have an important influence on these conclusions.
 The Dong et al paper does not clarify why this data is missing from the authors' plot (compare to data table online [here](http://www.grg.org/Adams/A.HTM), assuming that this is the source of the data the authors use).
+
+Finally, it is not clear whether modeling data such as MRAD by linear models with Gaussian noise is a valid strategy to answer the question about a limit to the human lifespan at all – but we show above that even if one accepts this as a valid modeling framework, the analysis presented by Dong et al. fails to present evidence that a maximum lifespan has not been increasing since the mid-nineties. In the end, we are agnostic with regards to the fact whether there is an absolute limit to the human lifespan as argued by Dong et al. or not3 – we are not agnostic, however, with regards to the standards that statistical reasoning and reporting should be conducted at. 
 
 # References
 
