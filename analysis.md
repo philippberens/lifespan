@@ -6,13 +6,11 @@ October 11, 2016
 Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here we present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not.
 
 The model by the authors
-------------------------
+========================
 
 The authors graph the maximum age reported at death (MRAD) for each year between 1968 and 2006. We acquired the data using WebPlotDigitizer and rounded the numbers to full years (which is what likely was the case for the original data). Originally the data came from the [IDL Database](http://www.supercentenarians.org/).
 
 Here is the raw data, as presented by the authors, fitting separate regression for years up to 1994 and after 1995.
-
-![](analysis_files/figure-markdown_github/unnamed-chunk-1-1.png)
 
 The plot shows the raw data points in black and separate linear fits with 95%-CIs for years before and after 1995. It is not clear from the paper why the authors chose 1995 as a point to separate models.
 
@@ -52,7 +50,7 @@ tbl2$yhat <- predict(mdl1)
 plt <- ggplot(tbl2, aes(x = Year, y = Age, colour = Group)) +
   geom_point() + 
   geom_line(aes(y = yhat)) + 
-  ylab('Yearly maximum reported age at death (years)')  
+  ylab('Yearly maximum reported age at death (years)')
 
 plt
 ```
@@ -62,7 +60,7 @@ plt
 Consistent with the paper, the fitted model has a slope of 0.153 years for years before 1995 and one of -0.276 for years afterwards (compare their Figure 2a). We also plot the regression line from this combined model to show that it is the same as the authors' separate regression fits.
 
 A linear model
---------------
+==============
 
 A simple alternative hypothesis to the claim of the authors would be that MRAD actually keeps increasing and therefore, that there is no limit to human lifespan. To model this idea, we fit a simple linear model to the data:
 
@@ -97,7 +95,7 @@ summary.lm(mdl2)
 In this case, MRAD increases slightly by 0.12 years per year.
 
 Showing the models side-by-side
--------------------------------
+===============================
 
 ``` r
 # prepare data:
@@ -121,7 +119,7 @@ plt <- plt +
                      breaks = seq(110, 126, by = 2)) + 
   ylab("Yearly maximum reported age at death (years)") +
   theme_minimal(base_size = 8) + 
-  theme(panel.grid.major = element_line(colour = "grey90", size = 0.6)) + 
+  theme(panel.grid.major = element_line(colour = "grey90", size = 0.5)) + 
   theme(panel.margin = unit(2, "lines")) + 
   scale_color_manual(values = c("#4A87CB", "#E76826"), name = "") + 
   theme(legend.position = "bottom")
@@ -131,8 +129,13 @@ plt
 
 ![](analysis_files/figure-markdown_github/combined_plot-1.png)
 
+``` r
+ggsave("combined_data_plot.pdf", width = 3.5, height = 3.2)
+ggsave("combined_data_plot.eps", width = 3.5, height = 3.2)
+```
+
 Model comparison
-----------------
+================
 
 Which model is better? In the paper, the authors fail to provide evidence for their model, they seem to argue that the data looks like there is a saturation effect or a decline in MRAD after 1995.
 
@@ -140,7 +143,8 @@ One can do better and objectively compare the two fitted models. If we look at t
 
 We can therefore ask if the increase in explained variance is "worth" the additional parameters. A number of model comparison metrics exist; in general these weigh the tradeoff between model fit and complexity differently. We present the results of several classical model comparison metrics below.
 
-### Classical ANOVA
+Classical ANOVA
+---------------
 
 First, we consider the two models as a nested set and compare them using classical ANOVA.
 
@@ -160,7 +164,8 @@ anova(mdl2, mdl1)
 
 The two extra degrees of freedom in the Dong et al model does not lead to a statistically-significant improvement in residual error over the simple linear model (following the traditional \(p < .05\) cutoff for significance).
 
-### AIC
+AIC
+---
 
 Another comparison metric with appealing theoretical links to information theory (see Burnham & Anderson, 2002) is the so-called Akaike Information Criterion (AIC). In the AIC, smaller values denote better models.
 
@@ -178,7 +183,8 @@ AIC(mdl2)
 
 Here, the model of Dong et al has the lower AIC and is thus the preferred model. However, following the heuristics suggested by Burnham & Anderson (2002, p.70), an AIC difference of -2.5 indicates that the data provide "substantial" support for the simpler linear model.
 
-### BIC
+BIC
+---
 
 A related model comparison metric is the Bayesian Information Criterion (BIC), which is more conservative than AIC because it additionally penalises models with more parameters.
 
@@ -196,7 +202,8 @@ BIC(mdl2)
 
 Following Raftery (1995), a BIC difference of 0.49 is not worth mentioning, providing no evidence of one versus the other model.
 
-### Bayes Factors
+Bayes Factors
+-------------
 
 Finally, Bayes Factors (the ratio of the posterior model evidence), can be easily computed to compare simple linear models using the BayesFactor package (Morey & Rouder, 2015).
 
@@ -209,7 +216,7 @@ bf1 / bf2
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 1.248852 ±0.56%
+    ## [1] Year * Group : 1.23295 ±0.51%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
@@ -220,7 +227,8 @@ Under these default priors (assuming for example that both models are equally li
 
 Changing the priors of BayesFactor from "medium" to "ultrawide" on the standardised effect size scale did not appreciably affect these conclusions; with ultrawide effect-size priors the simpler model is now preferred with odds of 1.09-to-1.
 
-### Bayesian estimation of model parameters
+Bayesian estimation of model parameters
+---------------------------------------
 
 Here we take a Baysian approach to model estimation, and fit the full linear model including interaction terms. We employ a Student-t prior with a mean of zero, standard deviation of 2.5 and five degrees of freedom, which yields modest shrinkage of the coefficients towards zero, i.e. enforcing some conservatism in inference.
 
@@ -249,9 +257,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 1, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 1, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.90537 seconds (Warm-up)
-    ##                0.912955 seconds (Sampling)
-    ##                1.81832 seconds (Total)
+    ##  Elapsed Time: 1.15253 seconds (Warm-up)
+    ##                1.04758 seconds (Sampling)
+    ##                2.20011 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 2).
@@ -268,9 +276,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 2, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 2, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 2, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 1.114 seconds (Warm-up)
-    ##                1.09402 seconds (Sampling)
-    ##                2.20802 seconds (Total)
+    ##  Elapsed Time: 1.04799 seconds (Warm-up)
+    ##                1.74625 seconds (Sampling)
+    ##                2.79424 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 3).
@@ -287,9 +295,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 3, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 3, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 3, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.895852 seconds (Warm-up)
-    ##                0.843992 seconds (Sampling)
-    ##                1.73984 seconds (Total)
+    ##  Elapsed Time: 1.12056 seconds (Warm-up)
+    ##                1.0744 seconds (Sampling)
+    ##                2.19496 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 4).
@@ -306,9 +314,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 4, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 4, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 4, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.949839 seconds (Warm-up)
-    ##                0.918062 seconds (Sampling)
-    ##                1.8679 seconds (Total)
+    ##  Elapsed Time: 1.10496 seconds (Warm-up)
+    ##                1.38679 seconds (Sampling)
+    ##                2.49175 seconds (Total)
 
 We can summarize the fitted model and plot the posterior density over the parameters:
 
@@ -328,9 +336,9 @@ bmdl
     ## 
     ## Estimates:
     ##                  Median MAD_SD
-    ## (Intercept)      -89.7  120.0 
+    ## (Intercept)      -87.7  118.5 
     ## Year               0.1    0.1 
-    ## Group>=1995        0.9    8.9 
+    ## Group>=1995        0.7    8.7 
     ## Year:Group>=1995   0.0    0.0 
     ## sigma              2.2    0.3 
     ## 
@@ -341,7 +349,7 @@ bmdl
     ## 
     ## Observations: 33  Number of unconstrained parameters: 5
 
-Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.102) is similar to the estimated value above (0.153), but shrunken towards zero by the prior. The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
+Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.101) is similar to the estimated value above (0.153), but shrunken towards zero by the prior. The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
 
 ``` r
 draws <- as.data.frame(as.matrix(bmdl))
@@ -378,7 +386,7 @@ stan_diag(bmdl)
 ![](analysis_files/figure-markdown_github/unnamed-chunk-9-1.png)
 
 Extended data figure
---------------------
+====================
 
 The authors present a similar dataset from an independent source, the Gerontological Research Group, in Extended Data Figure 6. They find similar results to those reported for the main analysis, and they argue that this provides independent evidence for their central analysis.
 
@@ -421,7 +429,7 @@ The fitted model has a slope of 0.121 years for years before 1995 (their slope =
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 8.957058 ±1.11%
+    ## [1] Year * Group : 8.87468 ±1.1%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
@@ -431,14 +439,14 @@ The fitted model has a slope of 0.121 years for years before 1995 (their slope =
 Here, the ANOVA analysis does provide support for the Dong et al model. What about the other model comparison metrics? The AIC difference between the models is -6.6, which corresponds to "considerably less" support for the simple linear model relative to the authors' model. The BIC difference is -3.3, which provides "positive evidence" (Raftery, 1995) in support of the authors' model. Finally, the Bayes factor computed as above is about 8.8, which also provides positive support for the authors' model.
 
 Conclusion
-----------
+==========
 
 These model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the central data reported in the paper do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data from Figure 2a.
 
 The MRAD data from an independent source provided in Extended Data Figure 6 *does* provide some evidence in favour of the Dong et al "trend break" model, with one important caveat: data for the years 1989--1996 are missing from the authors' plot. Since this data spans the key years of the "break", they could have an important influence on these conclusions. The Dong et al paper does not clarify why this data is missing from the authors' plot (compare to data table online [here](http://www.grg.org/Adams/A.HTM), assuming that this is the source of the data the authors use).
 
 References
-----------
+==========
 
 -   Burnham, K. P., & Anderson, D. R. (2002): Model selection and multimodel inference a practical information-theoretic approach. New York: Springer.
 

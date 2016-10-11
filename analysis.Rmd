@@ -2,10 +2,10 @@
 title: "Technical comment on Evidence for a limit to human lifespan"
 author: "Philipp Berens and Tom Wallis"
 date: "October 11, 2016"
-# output: github_document
-output:
-  tufte::tufte_handout: default
-  # tufte::tufte_html: default
+output: github_document
+# output:
+#   tufte::tufte_handout: default
+#   # tufte::tufte_html: default
 ---
 
 ```{r setup, include=FALSE}
