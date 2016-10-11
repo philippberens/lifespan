@@ -1,7 +1,7 @@
 Technical comment on Evidence for a limit to human lifespan
 ================
 Philipp Berens and Tom Wallis
-October 9, 2016
+October 11, 2016
 
 Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here we present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not.
 
@@ -96,6 +96,41 @@ summary.lm(mdl2)
 
 In this case, MRAD increases slightly by 0.12 years per year.
 
+Showing the models side-by-side
+-------------------------------
+
+``` r
+# prepare data:
+tmp1 <- tbl
+tmp2 <- tbl
+tmp1$model <- "Trend break"
+tmp1$yhat <- predict(mdl1)
+tmp2$model <- "Linear"
+tmp2$yhat <- predict(mdl2)
+
+combined_data <- rbind(tmp1, tmp2)
+
+plt <- ggplot(combined_data, aes(x = Year, y = Age, colour = Group)) + 
+  facet_grid(~ model) + 
+  geom_point() +
+  geom_line(aes(y = yhat))
+
+# appearance:
+plt <- plt + 
+  scale_y_continuous(name = "Yearly maximum reported age at death (years)",
+                     breaks = seq(110, 126, by = 2)) + 
+  ylab("Yearly maximum reported age at death (years)") +
+  theme_minimal(base_size = 8) + 
+  theme(panel.grid.major = element_line(colour = "grey90", size = 0.6)) + 
+  theme(panel.margin = unit(2, "lines")) + 
+  scale_color_manual(values = c("#4A87CB", "#E76826"), name = "") + 
+  theme(legend.position = "bottom")
+
+plt
+```
+
+![](analysis_files/figure-markdown_github/combined_plot-1.png)
+
 Model comparison
 ----------------
 
@@ -174,7 +209,7 @@ bf1 / bf2
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 1.263247 ±0.52%
+    ## [1] Year * Group : 1.248852 ±0.56%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
@@ -182,6 +217,8 @@ bf1 / bf2
     ## Bayes factor type: BFlinearModel, JZS
 
 Under these default priors (assuming for example that both models are equally likely *a priori*), the models receive approximately equal support from the data (the Dong et al model is favoured with an odds ratio of 1.24-to-1).
+
+Changing the priors of BayesFactor from "medium" to "ultrawide" on the standardised effect size scale did not appreciably affect these conclusions; with ultrawide effect-size priors the simpler model is now preferred with odds of 1.09-to-1.
 
 ### Bayesian estimation of model parameters
 
@@ -192,6 +229,7 @@ We fit the models using the package `rstanarm`, which allows relatively straight
 ``` r
 bmdl <- stan_glm(Age~Year*Group, tbl, 
                  prior = student_t(5, 0, 2.5), 
+                 prior_intercept = student_t(5, 0, 50),
                  family = gaussian(), 
                  adapt_delta = 0.99)
 ```
@@ -211,9 +249,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 1, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 1, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.852846 seconds (Warm-up)
-    ##                0.913335 seconds (Sampling)
-    ##                1.76618 seconds (Total)
+    ##  Elapsed Time: 0.90537 seconds (Warm-up)
+    ##                0.912955 seconds (Sampling)
+    ##                1.81832 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 2).
@@ -230,9 +268,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 2, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 2, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 2, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 1.01437 seconds (Warm-up)
-    ##                1.08593 seconds (Sampling)
-    ##                2.1003 seconds (Total)
+    ##  Elapsed Time: 1.114 seconds (Warm-up)
+    ##                1.09402 seconds (Sampling)
+    ##                2.20802 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 3).
@@ -249,9 +287,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 3, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 3, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 3, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 1.00501 seconds (Warm-up)
-    ##                0.979985 seconds (Sampling)
-    ##                1.98499 seconds (Total)
+    ##  Elapsed Time: 0.895852 seconds (Warm-up)
+    ##                0.843992 seconds (Sampling)
+    ##                1.73984 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 4).
@@ -268,9 +306,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 4, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 4, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 4, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 1.03229 seconds (Warm-up)
-    ##                0.903942 seconds (Sampling)
-    ##                1.93624 seconds (Total)
+    ##  Elapsed Time: 0.949839 seconds (Warm-up)
+    ##                0.918062 seconds (Sampling)
+    ##                1.8679 seconds (Total)
 
 We can summarize the fitted model and plot the posterior density over the parameters:
 
@@ -278,20 +316,21 @@ We can summarize the fitted model and plot the posterior density over the parame
 plot(bmdl,'dens')
 ```
 
-![](analysis_files/figure-markdown_github/unnamed-chunk-8-1.png)
+![](analysis_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
 ``` r
 bmdl
 ```
 
     ## stan_glm(formula = Age ~ Year * Group, family = gaussian(), data = tbl, 
-    ##     prior = student_t(5, 0, 2.5), adapt_delta = 0.99)
+    ##     prior = student_t(5, 0, 2.5), prior_intercept = student_t(5, 
+    ##         0, 50), adapt_delta = 0.99)
     ## 
     ## Estimates:
     ##                  Median MAD_SD
-    ## (Intercept)      -91.5  124.3 
+    ## (Intercept)      -89.7  120.0 
     ## Year               0.1    0.1 
-    ## Group>=1995        0.8    8.7 
+    ## Group>=1995        0.9    8.9 
     ## Year:Group>=1995   0.0    0.0 
     ## sigma              2.2    0.3 
     ## 
@@ -302,7 +341,7 @@ bmdl
     ## 
     ## Observations: 33  Number of unconstrained parameters: 5
 
-Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.103) is similar to the estimated value above (0.153), but shrunken towards zero by the prior. The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
+Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.102) is similar to the estimated value above (0.153), but shrunken towards zero by the prior. The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
 
 ``` r
 draws <- as.data.frame(as.matrix(bmdl))
@@ -328,7 +367,7 @@ base +
   geom_line(data=tbl2,mapping = aes(x=Year, y=Pred),size=1.1)
 ```
 
-![](analysis_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](analysis_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
 We check certain properties of the Bayesian fitting procedures graphically:
 
@@ -336,9 +375,7 @@ We check certain properties of the Bayesian fitting procedures graphically:
 stan_diag(bmdl)
 ```
 
-    ## Warning: Removed 1 rows containing missing values (geom_bar).
-
-![](analysis_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](analysis_files/figure-markdown_github/unnamed-chunk-9-1.png)
 
 Extended data figure
 --------------------
@@ -384,7 +421,7 @@ The fitted model has a slope of 0.121 years for years before 1995 (their slope =
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 9.006163 ±1.05%
+    ## [1] Year * Group : 8.957058 ±1.11%
     ## 
     ## Against denominator:
     ##   Age ~ Year 

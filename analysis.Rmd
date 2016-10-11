@@ -1,7 +1,7 @@
 ---
 title: "Technical comment on Evidence for a limit to human lifespan"
 author: "Philipp Berens and Tom Wallis"
-date: "October 9, 2016"
+date: "October 11, 2016"
 output: github_document
 ---
 
@@ -86,6 +86,39 @@ summary.lm(mdl2)
 
 In this case, MRAD increases slightly by `r signif(mdl2$coefficients['Year'],digits = 2)` years per year. 
 
+## Showing the models side-by-side
+
+```{r combined_plot, fig.width=3.5, fig.height=3.2}
+
+# prepare data:
+tmp1 <- tbl
+tmp2 <- tbl
+tmp1$model <- "Trend break"
+tmp1$yhat <- predict(mdl1)
+tmp2$model <- "Linear"
+tmp2$yhat <- predict(mdl2)
+
+combined_data <- rbind(tmp1, tmp2)
+
+plt <- ggplot(combined_data, aes(x = Year, y = Age, colour = Group)) + 
+  facet_grid(~ model) + 
+  geom_point() +
+  geom_line(aes(y = yhat))
+
+# appearance:
+plt <- plt + 
+  scale_y_continuous(name = "Yearly maximum reported age at death (years)",
+                     breaks = seq(110, 126, by = 2)) + 
+  ylab("Yearly maximum reported age at death (years)") +
+  theme_minimal(base_size = 8) + 
+  theme(panel.grid.major = element_line(colour = "grey90", size = 0.6)) + 
+  theme(panel.margin = unit(2, "lines")) + 
+  scale_color_manual(values = c("#4A87CB", "#E76826"), name = "") + 
+  theme(legend.position = "bottom")
+
+plt
+```
+
 
 ## Model comparison
 
@@ -148,6 +181,15 @@ bf1 / bf2
 
 Under these default priors (assuming for example that both models are equally likely *a priori*), the models receive approximately equal support from the data (the Dong et al model is favoured with an odds ratio of 1.24-to-1).
 
+```{r test_bf_effects, echo=FALSE, results="hide"}
+bf1_wide <- lmBF(Age~Year*Group, tbl, rscaleFixed = "ultrawide", rscaleCont = "ultrawide")
+bf2_wide <- lmBF(Age~Year, tbl, rscaleFixed = "ultrawide", rscaleCont = "ultrawide")
+
+bf1_wide / bf2_wide
+```
+
+Changing the priors of BayesFactor from "medium" to "ultrawide" on the standardised effect size scale did not appreciably affect these conclusions; with ultrawide effect-size priors the simpler model is now preferred with odds of 1.09-to-1.
+
 ### Bayesian estimation of model parameters
 
 Here we take a Baysian approach to model estimation, and fit the full linear model including interaction terms.
@@ -155,10 +197,11 @@ We employ a Student-t prior with a mean of zero, standard deviation of 2.5 and f
 
 We fit the models using the package `rstanarm`, which allows relatively straightforward use of Bayesian methods.  
 
-```{r}
+```{r fit_stan_model}
 
 bmdl <- stan_glm(Age~Year*Group, tbl, 
                  prior = student_t(5, 0, 2.5), 
+                 prior_intercept = student_t(5, 0, 50),
                  family = gaussian(), 
                  adapt_delta = 0.99)
 
