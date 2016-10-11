@@ -15,11 +15,11 @@ library(rstanarm)
 library(BayesFactor)
 ```
 
-Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here I present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not. 
+Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here we present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not. 
 
 ## The model by the authors
 
-The authors graph the maximum age reported at death (MRAD) for each year between 1968 and 2006. I acquired the data using WebPlotDigitizer and rounded the numbers to full years (which is what likely was the case for the original data). Originally the data came from the [IDL Database](http://www.supercentenarians.org/). 
+The authors graph the maximum age reported at death (MRAD) for each year between 1968 and 2006. We acquired the data using WebPlotDigitizer and rounded the numbers to full years (which is what likely was the case for the original data). Originally the data came from the [IDL Database](http://www.supercentenarians.org/). 
 
 Here is the raw data, as presented by the authors, fitting separate regression for years up to 1994 and after 1995.  
 
@@ -46,9 +46,20 @@ We can also obtain the statistics for this model by fitting a linear model with 
 mdl1 <- lm(Age~Year*Group,tbl)
 summary.lm(mdl1)
 
+# additionally show that you get the same model fit from this combined regression:
+tbl2 <- tbl
+tbl2$yhat <- predict(mdl1)
+
+plt <- ggplot(tbl2, aes(x = Year, y = Age, colour = Group)) +
+  geom_point() + 
+  geom_line(aes(y = yhat)) + 
+  ylab('Yearly maximum reported age at death (years)')  
+
+plt
 ```
 
 Consistent with the paper, the fitted model has a slope of `r signif(mdl1$coefficients['Year'],digits = 3)` years for years before 1995 and one of `r signif(mdl1$coefficients['Year']+mdl1$coefficients['Year:Group>=1995'],digits = 3)` for years afterwards (compare their Figure 2a).
+We also plot the regression line from this combined model to show that it is the same as the authors' separate regression fits.
 
 
 ## A linear model

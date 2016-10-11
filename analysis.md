@@ -3,12 +3,12 @@ Technical comment on Evidence for a limit to human lifespan
 Philipp Berens and Tom Wallis
 October 9, 2016
 
-Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here I present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not.
+Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here we present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not.
 
 The model by the authors
 ------------------------
 
-The authors graph the maximum age reported at death (MRAD) for each year between 1968 and 2006. I acquired the data using WebPlotDigitizer and rounded the numbers to full years (which is what likely was the case for the original data). Originally the data came from the [IDL Database](http://www.supercentenarians.org/).
+The authors graph the maximum age reported at death (MRAD) for each year between 1968 and 2006. We acquired the data using WebPlotDigitizer and rounded the numbers to full years (which is what likely was the case for the original data). Originally the data came from the [IDL Database](http://www.supercentenarians.org/).
 
 Here is the raw data, as presented by the authors, fitting separate regression for years up to 1994 and after 1995.
 
@@ -44,7 +44,21 @@ summary.lm(mdl1)
     ## Multiple R-squared:  0.4163, Adjusted R-squared:  0.3559 
     ## F-statistic: 6.893 on 3 and 29 DF,  p-value: 0.001209
 
-Consistent with the paper, the fitted model has a slope of 0.153 years for years before 1995 and one of -0.276 for years afterwards (compare their Figure 2a).
+``` r
+# additionally show that you get the same model fit from this combined regression:
+tbl2 <- tbl
+tbl2$yhat <- predict(mdl1)
+
+plt <- ggplot(tbl2, aes(x = Year, y = Age, colour = Group)) +
+  geom_point() + 
+  geom_line(aes(y = yhat))
+
+plt
+```
+
+![](analysis_files/figure-markdown_github/unnamed-chunk-2-1.png)
+
+Consistent with the paper, the fitted model has a slope of 0.153 years for years before 1995 and one of -0.276 for years afterwards (compare their Figure 2a). We also plot the regression line from this combined model to show that it is the same as the authors' separate regression fits.
 
 A linear model
 --------------
@@ -159,7 +173,7 @@ bf1 / bf2
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 1.242026 ±0.54%
+    ## [1] Year * Group : 1.249887 ±0.57%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
@@ -196,9 +210,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 1, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 1, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 1.01314 seconds (Warm-up)
-    ##                1.01499 seconds (Sampling)
-    ##                2.02812 seconds (Total)
+    ##  Elapsed Time: 1.01904 seconds (Warm-up)
+    ##                1.26417 seconds (Sampling)
+    ##                2.28321 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 2).
@@ -215,9 +229,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 2, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 2, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 2, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 1.15534 seconds (Warm-up)
-    ##                1.04143 seconds (Sampling)
-    ##                2.19677 seconds (Total)
+    ##  Elapsed Time: 1.04213 seconds (Warm-up)
+    ##                1.05329 seconds (Sampling)
+    ##                2.09542 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 3).
@@ -234,9 +248,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 3, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 3, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 3, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.956411 seconds (Warm-up)
-    ##                0.965434 seconds (Sampling)
-    ##                1.92185 seconds (Total)
+    ##  Elapsed Time: 0.947823 seconds (Warm-up)
+    ##                1.18388 seconds (Sampling)
+    ##                2.1317 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 4).
@@ -253,9 +267,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 4, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 4, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 4, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 1.02202 seconds (Warm-up)
-    ##                1.18632 seconds (Sampling)
-    ##                2.20833 seconds (Total)
+    ##  Elapsed Time: 0.906603 seconds (Warm-up)
+    ##                1.08557 seconds (Sampling)
+    ##                1.99217 seconds (Total)
 
 We can summarize the fitted model and plot the posterior density over the parameters:
 
@@ -274,9 +288,9 @@ bmdl
     ## 
     ## Estimates:
     ##                  Median MAD_SD
-    ## (Intercept)      -93.7  119.4 
+    ## (Intercept)      -92.7  120.8 
     ## Year               0.1    0.1 
-    ## Group>=1995        0.4    8.9 
+    ## Group>=1995        0.6    8.4 
     ## Year:Group>=1995   0.0    0.0 
     ## sigma              2.2    0.3 
     ## 
@@ -322,6 +336,13 @@ stan_diag(bmdl)
 ```
 
 ![](analysis_files/figure-markdown_github/unnamed-chunk-12-1.png)
+
+Extended data figure
+--------------------
+
+The authors present a similar dataset from an independent source, the Gerontological Research Group, in Extended Data Figure 6. They find similar results to those reported for the main analysis, and they argue that this provides independent evidence for their central analysis.
+
+We again aquired these data using WebPlotDigitizer, and present them below.
 
 Conclusion
 ----------
