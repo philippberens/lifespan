@@ -1,0 +1,16 @@
+base
+methods
+datasets
+utils
+grDevices
+graphics
+stats
+ggplot2
+plyr
+StanHeaders
+rstan
+Rcpp
+rstanarm
+coda
+Matrix
+BayesFactor
