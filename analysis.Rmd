@@ -2,7 +2,10 @@
 title: "Technical comment on Evidence for a limit to human lifespan"
 author: "Philipp Berens and Tom Wallis"
 date: "October 11, 2016"
-output: github_document
+# output: github_document
+output:
+  tufte::tufte_handout: default
+  # tufte::tufte_html: default
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +20,7 @@ library(BayesFactor)
 
 Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here we present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not. 
 
-## The model by the authors
+# The model by the authors
 
 The authors graph the maximum age reported at death (MRAD) for each year between 1968 and 2006. We acquired the data using WebPlotDigitizer and rounded the numbers to full years (which is what likely was the case for the original data). Originally the data came from the [IDL Database](http://www.supercentenarians.org/). 
 
@@ -30,9 +33,9 @@ tbl <- round(tbl)
 tbl$Group <- factor(tbl$Year>=1995, levels = c("FALSE", "TRUE"), labels = c("<1995", ">=1995"))
 
 
-ggplot(tbl,aes(x=Year,y=Age,color=Group)) + geom_point() + 
-  geom_smooth(method="lm") + 
-  ylab('Yearly maximum reported age at death (years)')  
+# ggplot(tbl,aes(x=Year,y=Age,color=Group)) + geom_point() + 
+#   geom_smooth(method="lm") + 
+#   ylab('Yearly maximum reported age at death (years)')  
 
 
 ```
@@ -41,7 +44,7 @@ The plot shows the raw data points in black and separate linear fits with 95%-CI
 
 We can also obtain the statistics for this model by fitting a linear model with the additional group-variable as predictor including interactions, allowing for a changes slope and offset for the data after 1995.  
 
-```{r author_model}
+```{r author_model, fig.fullwidth=TRUE, fig.width=5, fig.height=4}
 
 mdl1 <- lm(Age~Year*Group,tbl)
 summary.lm(mdl1)
@@ -53,7 +56,7 @@ tbl2$yhat <- predict(mdl1)
 plt <- ggplot(tbl2, aes(x = Year, y = Age, colour = Group)) +
   geom_point() + 
   geom_line(aes(y = yhat)) + 
-  ylab('Yearly maximum reported age at death (years)')  
+  ylab('Yearly maximum reported age at death (years)')
 
 plt
 ```
@@ -62,11 +65,11 @@ Consistent with the paper, the fitted model has a slope of `r signif(mdl1$coeffi
 We also plot the regression line from this combined model to show that it is the same as the authors' separate regression fits.
 
 
-## A linear model
+# A linear model
 
 A simple alternative hypothesis to the claim of the authors would be that MRAD actually keeps increasing and therefore, that there is no limit to human lifespan. To model this idea, we fit a simple linear model to the data:
 
-```{r, linear_model, echo=FALSE}
+```{r, linear_model, echo=FALSE, fig.width=3.2, fig.height=3.2}
 
 ggplot(tbl,aes(x=Year,y=Age)) + geom_point() + 
   geom_smooth(method=lm) + 
@@ -86,7 +89,7 @@ summary.lm(mdl2)
 
 In this case, MRAD increases slightly by `r signif(mdl2$coefficients['Year'],digits = 2)` years per year. 
 
-## Showing the models side-by-side
+# Showing the models side-by-side
 
 ```{r combined_plot, fig.width=3.5, fig.height=3.2}
 
@@ -111,16 +114,19 @@ plt <- plt +
                      breaks = seq(110, 126, by = 2)) + 
   ylab("Yearly maximum reported age at death (years)") +
   theme_minimal(base_size = 8) + 
-  theme(panel.grid.major = element_line(colour = "grey90", size = 0.6)) + 
+  theme(panel.grid.major = element_line(colour = "grey90", size = 0.5)) + 
   theme(panel.margin = unit(2, "lines")) + 
   scale_color_manual(values = c("#4A87CB", "#E76826"), name = "") + 
   theme(legend.position = "bottom")
 
 plt
+
+ggsave("combined_data_plot.pdf", width = 3.5, height = 3.2)
+ggsave("combined_data_plot.eps", width = 3.5, height = 3.2)
 ```
 
 
-## Model comparison
+# Model comparison
 
 Which model is better? In the paper, the authors fail to provide evidence for their model, they seem to argue that the data looks like there is a saturation effect or a decline in MRAD after 1995.
 
@@ -130,7 +136,7 @@ We can therefore ask if the increase in explained variance is "worth" the additi
 A number of model comparison metrics exist; in general these weigh the tradeoff between model fit and complexity differently. 
 We present the results of several classical model comparison metrics below.
 
-### Classical ANOVA
+## Classical ANOVA
 
 First, we consider the two models as a nested set and compare them using classical ANOVA.
 
@@ -140,7 +146,7 @@ anova(mdl2, mdl1)
 
 The two extra degrees of freedom in the Dong et al model does not lead to a statistically-significant improvement in residual error over the simple linear model (following the traditional $p < .05$ cutoff for significance).
 
-### AIC
+## AIC
 
 Another comparison metric with appealing theoretical links to information theory (see Burnham & Anderson, 2002) is the so-called Akaike Information Criterion (AIC). 
 In the AIC, smaller values denote better models.
@@ -155,7 +161,7 @@ AIC(mdl2)
 Here, the model of Dong et al has the lower AIC and is thus the preferred model. 
 However, following the heuristics suggested by Burnham & Anderson (2002, p.70), an AIC difference of `r signif(AIC(mdl1) - AIC(mdl2), digits=2)` indicates that the data provide "substantial" support for the simpler linear model.
 
-### BIC
+## BIC
 
 A related model comparison metric is the Bayesian Information Criterion (BIC), which is more conservative than AIC because it additionally penalises models with more parameters.
 
@@ -168,7 +174,7 @@ BIC(mdl2)
 
 Following Raftery (1995), a BIC difference of `r signif(BIC(mdl1) - BIC(mdl2), digits=2)` is not worth mentioning, providing no evidence of one versus the other model. 
 
-### Bayes Factors
+## Bayes Factors
 
 Finally, Bayes Factors (the ratio of the posterior model evidence), can be easily computed to compare simple linear models using the BayesFactor package (Morey & Rouder, 2015).
 
@@ -190,7 +196,7 @@ bf1_wide / bf2_wide
 
 Changing the priors of BayesFactor from "medium" to "ultrawide" on the standardised effect size scale did not appreciably affect these conclusions; with ultrawide effect-size priors the simpler model is now preferred with odds of 1.09-to-1.
 
-### Bayesian estimation of model parameters
+## Bayesian estimation of model parameters
 
 Here we take a Baysian approach to model estimation, and fit the full linear model including interaction terms.
 We employ a Student-t prior with a mean of zero, standard deviation of 2.5 and five degrees of freedom, which yields modest shrinkage of the coefficients towards zero, i.e. enforcing some conservatism in inference.  
@@ -209,7 +215,7 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
 
 We can summarize the fitted model and plot the posterior density over the parameters:
 
-```{r}
+```{r, fig.fullwidth = TRUE, fig.width=5, fig.height=4}
 
 plot(bmdl,'dens')
 
@@ -248,7 +254,7 @@ base +
 
 We check certain properties of the Bayesian fitting procedures graphically:
 
-```{r}
+```{r, fig.fullwidth = TRUE, fig.width=5, fig.height=4}
 
 stan_diag(bmdl)
 
@@ -256,8 +262,7 @@ stan_diag(bmdl)
 
 
 
-
-## Extended data figure
+# Extended data figure
 
 The authors present a similar dataset from an independent source, the Gerontological Research Group, in Extended Data Figure 6.
 They find similar results to those reported for the main analysis, and they argue that this provides independent evidence for their central analysis.
@@ -271,7 +276,7 @@ ext_tbl$Group <- factor(ext_tbl$Year>=1995, levels = c("FALSE", "TRUE"), labels 
 
 ```
 
-```{r author_model_extended, echo=FALSE}
+```{r author_model_extended, echo=FALSE, fig.width=5, fig.height=3, fig.fullwidth=TRUE}
 
 ext_mdl1 <- lm(Age~Year*Group,ext_tbl)
 summary.lm(ext_mdl1)
@@ -309,7 +314,7 @@ The AIC difference between the models is `r signif(AIC(ext_mdl1) - AIC(ext_mdl2)
 The BIC difference is `r signif(BIC(ext_mdl1) - BIC(ext_mdl2), digits=2)`, which provides "positive evidence" (Raftery, 1995) in support of the authors' model.
 Finally, the Bayes factor computed as above is about 8.8, which also provides positive support for the authors' model.
 
-## Conclusion
+# Conclusion
 
 These model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the central data reported in the paper do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data from Figure 2a.
 
@@ -317,7 +322,7 @@ The MRAD data from an independent source provided in Extended Data Figure 6 *doe
 Since this data spans the key years of the "break", they could have an important influence on these conclusions.
 The Dong et al paper does not clarify why this data is missing from the authors' plot (compare to data table online [here](http://www.grg.org/Adams/A.HTM), assuming that this is the source of the data the authors use).
 
-## References
+# References
 
 * Burnham, K. P., & Anderson, D. R. (2002): Model selection and multimodel inference a practical information-theoretic approach. New York: Springer. 
 
