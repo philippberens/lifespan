@@ -1,5 +1,5 @@
 ---
-title: "Technical comment on Evidence for a limit to human lifespan"
+title: "Supplementary Information for Little Evidence for a Limit to Human Lifespan"
 author: "Philipp Berens and Tom Wallis"
 date: "October 11, 2016"
 output: github_document
@@ -44,12 +44,11 @@ The plot shows the raw data points in black and separate linear fits with 95%-CI
 
 We can also obtain the statistics for this model by fitting a linear model with the additional group-variable as predictor including interactions, allowing for a changes slope and offset for the data after 1995.  
 
-```{r author_model, fig.fullwidth=TRUE, fig.width=5, fig.height=4}
+```{r author_model, fig.width=4.5, fig.height=3.2}
 
 mdl1 <- lm(Age~Year*Group,tbl)
 summary.lm(mdl1)
 
-# additionally show that you get the same model fit from this combined regression:
 tbl2 <- tbl
 tbl2$yhat <- predict(mdl1)
 
@@ -69,7 +68,7 @@ We also plot the regression line from this combined model to show that it is the
 
 A simple alternative hypothesis to the claim of the authors would be that MRAD actually keeps increasing and therefore, that there is no limit to human lifespan. To model this idea, we fit a simple linear model to the data:
 
-```{r, linear_model, echo=FALSE, fig.width=3.2, fig.height=3.2}
+```{r, linear_model, echo=FALSE, fig.width=3.5, fig.height=3.2}
 
 ggplot(tbl,aes(x=Year,y=Age)) + geom_point() + 
   geom_smooth(method=lm) + 
@@ -84,14 +83,13 @@ The plots shows the raw data points again, with a linear regression with 95% CIs
 mdl2 <- lm(Age~Year,tbl)
 summary.lm(mdl2)
 
-
 ```
 
 In this case, MRAD increases slightly by `r signif(mdl2$coefficients['Year'],digits = 2)` years per year. 
 
 # Showing the models side-by-side
 
-```{r combined_plot, fig.width=3.5, fig.height=3.2}
+```{r combined_plot, fig.width=6, fig.height=3.2}
 
 # prepare data:
 tmp1 <- tbl
@@ -121,8 +119,8 @@ plt <- plt +
 
 plt
 
-ggsave("combined_data_plot.pdf", width = 3.5, height = 3.2)
-ggsave("combined_data_plot.eps", width = 3.5, height = 3.2)
+#ggsave("combined_data_plot.pdf", width = 3.5, height = 3.2)
+#ggsave("combined_data_plot.eps", width = 3.5, height = 3.2)
 ```
 
 
@@ -215,7 +213,7 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
 
 We can summarize the fitted model and plot the posterior density over the parameters:
 
-```{r, fig.fullwidth = TRUE, fig.width=5, fig.height=4}
+```{r, fig.width=5, fig.height=5}
 
 plot(bmdl,'dens')
 
@@ -227,7 +225,7 @@ The posterior density on the interaction term is centered around zero during inf
 There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by `r signif(mdl1$coefficients['Group>=1995'],digits=1)`. This is likely an artefact of the model parametrization.
 
 
-```{r}
+```{r plot_bayes_preds, fig.width=3.5, fig.height=3.2}
 draws <- as.data.frame(as.matrix(bmdl))
 X <- draws[1:200,1:4]
 foomdl <- mdl1
@@ -254,7 +252,7 @@ base +
 
 We check certain properties of the Bayesian fitting procedures graphically:
 
-```{r, fig.fullwidth = TRUE, fig.width=5, fig.height=4}
+```{r, fig.width=3.5, fig.height=5}
 
 stan_diag(bmdl)
 
@@ -276,7 +274,7 @@ ext_tbl$Group <- factor(ext_tbl$Year>=1995, levels = c("FALSE", "TRUE"), labels 
 
 ```
 
-```{r author_model_extended, echo=FALSE, fig.width=5, fig.height=3, fig.fullwidth=TRUE}
+```{r author_model_extended, echo=FALSE, fig.width=3.5, fig.height=3.2}
 
 ext_mdl1 <- lm(Age~Year*Group,ext_tbl)
 summary.lm(ext_mdl1)
@@ -322,8 +320,7 @@ The MRAD data from an independent source provided in Extended Data Figure 6 *doe
 Since this data spans the key years of the "break", they could have an important influence on these conclusions.
 The Dong et al paper does not clarify why this data is missing from the authors' plot (compare to data table online [here](http://www.grg.org/Adams/A.HTM), assuming that this is the source of the data the authors use).
 
-Finally, it is not clear whether modeling data such as MRAD using linear models with Gaussian noise is a valid strategy to answer the question about a limit to the human lifespan at all. Nevertheless, even if one accepts this as a valid modeling framework, the analysis presented by Dong et al. fails to present evidence that maximum lifespan has not been increasing since the mid-nineties. Ultimately, we are agnostic as to whether there is an absolute limit to the human lifespan (as argued by Dong et al.) or not3 – we are not agnostic, however, regarding the standards that statistical reasoning and reporting should be held to. In our view, the present paper represents a strong case for increased transparency through measures like preregistered analysis plans, preprinted manuscripts, published analysis code and openly available data. Without such requirements it will be difficult to combat the “reproducibility crisis” that is negatively impacting the public’s image of science.
-
+Finally, it is not clear whether modeling data such as MRAD by linear models with Gaussian noise is a valid strategy to answer the question about a limit to the human lifespan at all – but we show above that even if one accepts this as a valid modeling framework, the analysis presented by Dong et al. fails to present evidence that a maximum lifespan has not been increasing since the mid-nineties. In the end, we are agnostic with regards to the fact whether there is an absolute limit to the human lifespan as argued by Dong et al. or not – we are not agnostic, however, with regards to the standards that statistical reasoning and reporting should be held to. 
 
 # References
 
