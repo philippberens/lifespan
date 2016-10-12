@@ -1,4 +1,4 @@
-Technical comment on Evidence for a limit to human lifespan
+Supplementary Information for Little Evidence for a Limit to Human Lifespan
 ================
 Philipp Berens and Tom Wallis
 October 11, 2016
@@ -43,7 +43,6 @@ summary.lm(mdl1)
     ## F-statistic: 6.893 on 3 and 29 DF,  p-value: 0.001209
 
 ``` r
-# additionally show that you get the same model fit from this combined regression:
 tbl2 <- tbl
 tbl2$yhat <- predict(mdl1)
 
@@ -130,8 +129,8 @@ plt
 ![](analysis_files/figure-markdown_github/combined_plot-1.png)
 
 ``` r
-ggsave("combined_data_plot.pdf", width = 3.5, height = 3.2)
-ggsave("combined_data_plot.eps", width = 3.5, height = 3.2)
+#ggsave("combined_data_plot.pdf", width = 3.5, height = 3.2)
+#ggsave("combined_data_plot.eps", width = 3.5, height = 3.2)
 ```
 
 Model comparison
@@ -216,7 +215,7 @@ bf1 / bf2
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 1.249751 ±0.51%
+    ## [1] Year * Group : 1.345328 ±7.69%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
@@ -257,9 +256,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 1, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 1, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.703 seconds (Warm-up)
-    ##                0.6 seconds (Sampling)
-    ##                1.303 seconds (Total)
+    ##  Elapsed Time: 0.694 seconds (Warm-up)
+    ##                0.518 seconds (Sampling)
+    ##                1.212 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 2).
@@ -276,9 +275,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 2, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 2, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 2, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.684 seconds (Warm-up)
-    ##                0.654 seconds (Sampling)
-    ##                1.338 seconds (Total)
+    ##  Elapsed Time: 0.81 seconds (Warm-up)
+    ##                0.849 seconds (Sampling)
+    ##                1.659 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 3).
@@ -295,9 +294,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 3, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 3, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 3, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.68 seconds (Warm-up)
-    ##                1.052 seconds (Sampling)
-    ##                1.732 seconds (Total)
+    ##  Elapsed Time: 0.562 seconds (Warm-up)
+    ##                0.575 seconds (Sampling)
+    ##                1.137 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 4).
@@ -314,9 +313,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 4, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 4, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 4, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.629 seconds (Warm-up)
-    ##                0.699 seconds (Sampling)
-    ##                1.328 seconds (Total)
+    ##  Elapsed Time: 0.655 seconds (Warm-up)
+    ##                0.642 seconds (Sampling)
+    ##                1.297 seconds (Total)
 
 We can summarize the fitted model and plot the posterior density over the parameters:
 
@@ -336,9 +335,9 @@ bmdl
     ## 
     ## Estimates:
     ##                  Median MAD_SD
-    ## (Intercept)      -96.3  115.8 
+    ## (Intercept)      -94.7  118.8 
     ## Year               0.1    0.1 
-    ## Group>=1995        0.4    8.8 
+    ## Group>=1995        1.0    8.5 
     ## Year:Group>=1995   0.0    0.0 
     ## sigma              2.2    0.3 
     ## 
@@ -375,7 +374,7 @@ base +
   geom_line(data=tbl2,mapping = aes(x=Year, y=Pred),size=1.1)
 ```
 
-![](analysis_files/figure-markdown_github/unnamed-chunk-8-1.png)
+![](analysis_files/figure-markdown_github/plot_bayes_preds-1.png)
 
 We check certain properties of the Bayesian fitting procedures graphically:
 
@@ -383,7 +382,7 @@ We check certain properties of the Bayesian fitting procedures graphically:
 stan_diag(bmdl)
 ```
 
-![](analysis_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](analysis_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
 Extended data figure
 ====================
@@ -429,7 +428,7 @@ The fitted model has a slope of 0.121 years for years before 1995 (their slope =
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 8.887492 ±2.01%
+    ## [1] Year * Group : 8.89977 ±1.81%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
@@ -441,11 +440,11 @@ Here, the ANOVA analysis does provide support for the Dong et al model. What abo
 Conclusion
 ==========
 
-Our model comparison metrics, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the central data reported in the paper do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data from Figure 2a.
+The model comparison metrics presented here, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the central data reported in the paper do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data from Figure 2a.
 
 The MRAD data from an independent source provided in Extended Data Figure 6 *does* provide some evidence in favour of the Dong et al "trend break" model, with one important caveat: data for the years 1989--1996 are missing from the authors' plot. Since this data spans the key years of the "break", they could have an important influence on these conclusions. The Dong et al paper does not clarify why this data is missing from the authors' plot (compare to data table online [here](http://www.grg.org/Adams/A.HTM), assuming that this is the source of the data the authors use).
 
-Finally, it is not clear whether modeling data such as MRAD by linear models with Gaussian noise is a valid strategy to answer the question about a limit to the human lifespan at all – but we show above that even if one accepts this as a valid modeling framework, the analysis presented by Dong et al. fails to present evidence that a maximum lifespan has not been increasing since the mid-nineties. In the end, we are agnostic with regards to the fact whether there is an absolute limit to the human lifespan as argued by Dong et al. or not3 – we are not agnostic, however, with regards to the standards that statistical reasoning and reporting should be conducted at.
+Finally, it is not clear whether modeling data such as MRAD by linear models with Gaussian noise is a valid strategy to answer the question about a limit to the human lifespan at all – but we show above that even if one accepts this as a valid modeling framework, the analysis presented by Dong et al. fails to present evidence that a maximum lifespan has not been increasing since the mid-nineties. In the end, we are agnostic with regards to the fact whether there is an absolute limit to the human lifespan as argued by Dong et al. or not – we are not agnostic, however, with regards to the standards that statistical reasoning and reporting should be held to.
 
 References
 ==========

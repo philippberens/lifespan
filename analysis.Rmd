@@ -44,7 +44,7 @@ The plot shows the raw data points in black and separate linear fits with 95%-CI
 
 We can also obtain the statistics for this model by fitting a linear model with the additional group-variable as predictor including interactions, allowing for a changes slope and offset for the data after 1995.  
 
-```{r author_model, fig.width=3.5, fig.height=3.2}
+```{r author_model, fig.width=4.5, fig.height=3.2}
 
 mdl1 <- lm(Age~Year*Group,tbl)
 summary.lm(mdl1)
@@ -89,7 +89,7 @@ In this case, MRAD increases slightly by `r signif(mdl2$coefficients['Year'],dig
 
 # Showing the models side-by-side
 
-```{r combined_plot, fig.width=3.5, fig.height=3.2}
+```{r combined_plot, fig.width=6, fig.height=3.2}
 
 # prepare data:
 tmp1 <- tbl
@@ -119,8 +119,8 @@ plt <- plt +
 
 plt
 
-ggsave("combined_data_plot.pdf", width = 3.5, height = 3.2)
-ggsave("combined_data_plot.eps", width = 3.5, height = 3.2)
+#ggsave("combined_data_plot.pdf", width = 3.5, height = 3.2)
+#ggsave("combined_data_plot.eps", width = 3.5, height = 3.2)
 ```
 
 
@@ -213,7 +213,7 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
 
 We can summarize the fitted model and plot the posterior density over the parameters:
 
-```{r, fig.fullwidth = TRUE, fig.width=3.5, fig.height=3.2}
+```{r, fig.width=5, fig.height=5}
 
 plot(bmdl,'dens')
 
@@ -252,7 +252,7 @@ base +
 
 We check certain properties of the Bayesian fitting procedures graphically:
 
-```{r, fig.width=3.5, fig.height=3.2}
+```{r, fig.width=3.5, fig.height=5}
 
 stan_diag(bmdl)
 
