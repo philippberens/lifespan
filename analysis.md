@@ -215,7 +215,7 @@ bf1 / bf2
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 1.243268 ±0.53%
+    ## [1] Year * Group : 1.244038 ±0.67%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
@@ -256,9 +256,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 1, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 1, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.942083 seconds (Warm-up)
-    ##                0.879017 seconds (Sampling)
-    ##                1.8211 seconds (Total)
+    ##  Elapsed Time: 0.656 seconds (Warm-up)
+    ##                1.047 seconds (Sampling)
+    ##                1.703 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 2).
@@ -275,9 +275,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 2, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 2, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 2, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 1.13317 seconds (Warm-up)
-    ##                0.965044 seconds (Sampling)
-    ##                2.09821 seconds (Total)
+    ##  Elapsed Time: 0.767 seconds (Warm-up)
+    ##                0.65 seconds (Sampling)
+    ##                1.417 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 3).
@@ -294,9 +294,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 3, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 3, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 3, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 1.09858 seconds (Warm-up)
-    ##                0.911198 seconds (Sampling)
-    ##                2.00977 seconds (Total)
+    ##  Elapsed Time: 0.62 seconds (Warm-up)
+    ##                0.589 seconds (Sampling)
+    ##                1.209 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 4).
@@ -313,9 +313,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 4, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 4, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 4, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 1.07043 seconds (Warm-up)
-    ##                1.07519 seconds (Sampling)
-    ##                2.14563 seconds (Total)
+    ##  Elapsed Time: 0.626 seconds (Warm-up)
+    ##                0.57 seconds (Sampling)
+    ##                1.196 seconds (Total)
 
 We can summarize the fitted model and plot the posterior density over the parameters:
 
@@ -335,9 +335,9 @@ bmdl
     ## 
     ## Estimates:
     ##                  Median MAD_SD
-    ## (Intercept)      -96.7  117.4 
+    ## (Intercept)      -93.9  117.6 
     ## Year               0.1    0.1 
-    ## Group>=1995        0.3    8.9 
+    ## Group>=1995        0.7    8.3 
     ## Year:Group>=1995   0.0    0.0 
     ## sigma              2.2    0.3 
     ## 
@@ -348,7 +348,7 @@ bmdl
     ## 
     ## Observations: 33  Number of unconstrained parameters: 5
 
-Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.106) is similar to the estimated value above (0.153), but shrunken towards zero by the prior. The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
+Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.104) is similar to the estimated value above (0.153), but shrunken towards zero by the prior. The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
 
 ``` r
 draws <- as.data.frame(as.matrix(bmdl))
@@ -430,7 +430,7 @@ The fitted model has a slope of 0.121 years for years before 1995 (their slope =
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 8.897258 ±1.19%
+    ## [1] Year * Group : 8.798122 ±0.92%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
