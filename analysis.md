@@ -229,7 +229,7 @@ Changing the priors of BayesFactor from "medium" to "ultrawide" on the standardi
 Bayesian estimation of model parameters
 ---------------------------------------
 
-Here we take a Baysian approach to model estimation, and fit the full linear model including interaction terms. We employ a Student-t prior with a mean of zero, standard deviation of 2.5 and five degrees of freedom, which yields modest shrinkage of the coefficients towards zero, i.e. enforcing some conservatism in inference.
+Here we take a Bayesian approach to model estimation, and fit the full linear model including interaction terms. We employ a Student-t prior with a mean of zero, standard deviation of 2.5 and five degrees of freedom, which yields modest shrinkage of the coefficients towards zero, i.e. enforcing some conservatism in inference.
 
 We fit the models using the package `rstanarm`, which allows relatively straightforward use of Bayesian methods.
 
