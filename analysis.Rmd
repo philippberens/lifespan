@@ -1,7 +1,7 @@
 ---
-title: "Supplementary Information for Little Evidence for a Limit to Human Lifespan"
+title: "Unclear Evidence for a Limit to Human Lifespan"
 author: "Philipp Berens and Tom Wallis"
-date: "October 11, 2016"
+date: "October 14, 2016"
 output: github_document
 # output:
 #   tufte::tufte_handout: default
@@ -20,9 +20,9 @@ library(XML)
 library(stringr) 
 ```
 
-Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here we present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not. 
+Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here we present a reanalysis of central figures in their paper showing that (1) the main data of their paper does not provide evidence one way or another and (2) data analyzed in the Extended Data may be incomplete but completing it showed some evidence for their claims. Nevertheless, modeling maxima of distributions by assuming Gaussian noise makes inappropriate assumptions. A new analysis using extreme value theory is required to determine whether the data provide evidence for the authors' claims. 
 
-# The model by the authors
+# The model by the authors (Figure 2a)
 
 The authors graph the maximum age reported at death (MRAD) for each year between 1968 and 2006. We acquired the data using WebPlotDigitizer and rounded the numbers to full years (which is what likely was the case for the original data). Originally the data came from the [IDL Database](http://www.supercentenarians.org/). 
 
@@ -34,15 +34,9 @@ tbl <- read.csv('lifeexpectancy.csv')
 tbl <- round(tbl)
 tbl$Group <- factor(tbl$Year>=1995, levels = c("FALSE", "TRUE"), labels = c("<1995", ">=1995"))
 
-
-# ggplot(tbl,aes(x=Year,y=Age,color=Group)) + geom_point() + 
-#   geom_smooth(method="lm") + 
-#   ylab('Yearly maximum reported age at death (years)')  
-
-
 ```
 
-The plot shows the raw data points in black and separate linear fits with 95%-CIs for years before and after 1995. It is not clear from the paper why the authors chose 1995 as a point to separate models. 
+The plot shows the raw data points in black and separate linear fits with 95%-CIs for years before and after 1995. It is not clear from the paper why the authors chose 1995 as a point to separate models. In a [response](https://publons.com/review/480517/) to a critical review on publons, they provide an analysis with a segmented regression package, choosing 1998 as break point.
 
 We can also obtain the statistics for this model by fitting a linear model with the additional group-variable as predictor including interactions, allowing for a changes slope and offset for the data after 1995.  
 
@@ -65,10 +59,9 @@ plt
 Consistent with the paper, the fitted model has a slope of `r signif(mdl1$coefficients['Year'],digits = 3)` years for years before 1995 and one of `r signif(mdl1$coefficients['Year']+mdl1$coefficients['Year:Group>=1995'],digits = 3)` for years afterwards (compare their Figure 2a).
 We also plot the regression line from this combined model to show that it is the same as the authors' separate regression fits.
 
-
 # A linear model
 
-A simple alternative hypothesis to the claim of the authors would be that MRAD actually keeps increasing and therefore, that there is no limit to human lifespan. To model this idea, we fit a simple linear model to the data:
+A simple alternative hypothesis to the claim of the authors would be that MRAD actually keeps increasing and therefore, that there is no limit to human lifespan. We are agnostic as to whether or not this model makes plausible predictions (apparently people have argued both ways), but it does represent a simple comparison model:
 
 ```{r, linear_model, echo=FALSE, fig.width=3.5, fig.height=3.2}
 
@@ -196,9 +189,11 @@ bf1_wide / bf2_wide
 
 Changing the priors of BayesFactor from "medium" to "ultrawide" on the standardised effect size scale did not appreciably affect these conclusions; with ultrawide effect-size priors the simpler model is now preferred with odds of 1.09-to-1.
 
+Note that in the above mentioned [response](https://publons.com/review/480517/) the authors argue that the segmented regression model provides a better AIC than the linear model. We will add the segmented model here later.
+
 ## Bayesian estimation of model parameters
 
-Here we take a Baysian approach to model estimation, and fit the full linear model including interaction terms.
+Here we take a Bayesian approach to model estimation, and fit the full linear model including interaction terms.
 We employ a Student-t prior with a mean of zero, standard deviation of 2.5 and five degrees of freedom, which yields modest shrinkage of the coefficients towards zero, i.e. enforcing some conservatism in inference.  
 
 We fit the models using the package `rstanarm`, which allows relatively straightforward use of Bayesian methods.  
@@ -252,20 +247,11 @@ base +
 
 ```
 
-We check certain properties of the Bayesian fitting procedures graphically:
-
-```{r, fig.width=3.5, fig.height=5}
-
-stan_diag(bmdl)
-
-```
-
-
 
 # Extended data figure
 
 The authors present a similar dataset from an independent source, the Gerontological Research Group, in Extended Data Figure 6.
-They find similar results to those reported for the main analysis, and they argue that this provides independent evidence for their central analysis.
+They find similar results to those reported for the main analysis, and they argue that this provides independent evidence for their central analysis. 
 
 We again aquired these data using WebPlotDigitizer, and present them below.
 
@@ -314,9 +300,11 @@ The AIC difference between the models is `r signif(AIC(ext_mdl1) - AIC(ext_mdl2)
 The BIC difference is `r signif(BIC(ext_mdl1) - BIC(ext_mdl2), digits=2)`, which provides "positive evidence" (Raftery, 1995) in support of the authors' model.
 Finally, the Bayes factor computed as above is about 8.8, which also provides positive support for the authors' model.
 
+An important caveat for these data is that they are missing observations between 1989-1996. Since this data spans the key years of the "break", they could have an important influence on these conclusions. The Dong et al paper does not clarify why this data is missing from the authors' plot (compare to data table online [here](http://www.grg.org/Adams/A.HTM)).
+
 # Recovering missing data
 
-In collaboration with [Adam Lenart](http://www.sdu.dk/staff/alenart), we recovered the full dataset from the Gerontology Research Group website ((http://www.grg.org/Adams/A.HTM). 
+In collaboration with [Adam Lenart](http://www.sdu.dk/staff/alenart), we recovered the full dataset from the Gerontology Research Group [website](http://www.grg.org/Adams/A.HTM), assuming that this was the source of the data the authors used.
 This is a dataset of "verified supercentenarians" as of January 1, 2014.
 
 ```{r pull_grg_data, echo=FALSE, warning=FALSE}
@@ -387,7 +375,7 @@ grg_mrad <- grg %>%
                         labels = c("<1995", ">=1995")))
 ```
 
-and here's a plot of that MRAD data:
+Here's a plot of that MRAD data:
 
 ```{r plot_grg_MRAD, echo=FALSE}
 plt <- ggplot(grg_mrad, aes(x = Year, y = Age)) +
@@ -426,71 +414,24 @@ grg_m2 <- lm(Age~Year, grg_mrad)
 summary(grg_m2)
 anova(grg_m2, grg_m1)
 
-# grg_bf1 <- lmBF(Age~Year*Group, grg_mrad)
-# grg_bf2 <- lmBF(Age~Year, grg_mrad)
+grg_bf1 <- lmBF(Age~Year*Group, as.data.frame(grg_mrad))
+grg_bf2 <- lmBF(Age~Year, as.data.frame(grg_mrad))
 # 
-# grg_bf1 / grg_bf2
+grg_bf1 / grg_bf2
 
 ```
 
 Including the missing data from the table substantially increases support for the authors' model over a simple linear model.
 The ANOVA is highly significant; the AIC difference is `r signif(AIC(grg_m1) - AIC(grg_m2), digits=2)`, which corresponds to "essentially no" support for the simple linear model relative to the authors' model.
 The BIC difference is `r signif(BIC(grg_m1) - BIC(grg_m2), digits=2)`, which provides "very strong" (Raftery, 1995) support for the authors' model over the simple linear one.
-Finally, the Bayes factor computed as above is about TODO(fix error), which also provides positive support for the authors' model.
-
-## Outliers
-
-Because these are the most extreme values of a long-tailed distribution, they are subject to a great deal of observation noise (suggesting the assumption of Gaussian noise is unwarranted, see below).
-The decreasing trend line since 1995 seems to be driven largely by the 122-year-old who died in 1997, and the most recent death (112 years) in 2014.
-What happens to the model fits if we remove these two points?
-
-```{r outliers_trimmed}
-grg_mrad_trimmed <- grg_mrad %>% 
-  filter(Age != max(Age)) %>% 
-  filter(Year != 2014)
-
-grg_trimed_m1 <- lm(Age~Year*Group, grg_mrad_trimmed)
-grg_trimmed_m2 <- lm(Age~Year, grg_mrad_trimmed)
-
-anova(grg_trimmed_m2, grg_trimed_m1)
-
-# plot author model prediction
-blah <- grg_mrad_trimmed
-blah$yhat <- predict(grg_trimed_m1)
-
-plt <- ggplot(blah, aes(x = Year, y = Age, colour = Group)) +
-  geom_point() + 
-  geom_line(aes(y = yhat)) + 
-  ylab('Yearly maximum reported age at death (years)') + 
-  ggtitle("Author model fit to GRG data (outliers dropped)")
-
-plt
-
-```
-
-```{r outliers_bf, echo=FALSE}
-# grg_trimmed_bf1 <- lmBF(Age~Year*Group, grg_mrad_trimmed)
-# grg_trimmed_bf2 <- lmBF(Age~Year, grg_mrad_trimmed)
-# 
-# grg_trimmed_bf1 / grg_trimmed_bf2
-
-```
-
-Here, the authors' model is still supported by an ANOVA with p < .02.
-The AIC difference is `r signif(AIC(grg_trimed_m1) - AIC(grg_trimmed_m2), digits=2)`, which corresponds to "considerably less"" support for the linear model relative to the authors' model.
-The BIC difference is `r signif(BIC(grg_trimed_m1) - BIC(grg_trimmed_m2), digits=2)`, which provides "essentially no" (Raftery, 1995) support for the authors' model over the simple linear one.
-Finally, the Bayes factor computed as above is about TODO(fix error), which also provides positive support for the authors' model.
+Finally, the Bayes factor computed as above is about 150, which also provides very strong positive support for the authors' model.
 
 
 # Conclusion
 
-The model comparison metrics presented here, using both Frequentist, information theoretic and Bayesian approaches, yield the same conclusion: the central data reported in the paper do not support the argument by Dong et al that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data from Figure 2a.
+The model comparison metrics presented here, using both Frequentist, information theoretic and Bayesian approaches, suggest that the main data reported in the paper provide no support for or against the idea that there is a limit to human lifespan. A simple linear model showing a positive relationship between year and lifespan is just as plausible given the data from Figure 2a. However, the data we recovered from GRG website do provide strong support for a segmented "trend-break" model over a linear one. 
 
-The MRAD data from an independent source provided in Extended Data Figure 6 *does* provide some evidence in favour of the Dong et al "trend break" model, with one important caveat: data for the years 1989--1996 are missing from the authors' plot. 
-Since this data spans the key years of the "break", they could have an important influence on these conclusions.
-The Dong et al paper does not clarify why this data is missing from the authors' plot (compare to data table online [here](http://www.grg.org/Adams/A.HTM), assuming that this is the source of the data the authors use).
-
-Finally, there are deeper statistical issues regarding the model presented by Dong et al. For example, it is questionable to model the extreme values of a distribution such as age-at-death by assuming linearity and Gaussian noise (Coles, 2001). Even if one accepts this as a valid modeling framework however, the analysis presented by Dong et al. fails to present evidence that maximum lifespan has not been increasing since the mid-nineties. Ultimately, we are agnostic as to whether there is an absolute limit to the human lifespan (as argued by Dong et al.) or not – we are not agnostic, however, regarding the standards that statistical reasoning and reporting should be held to. In our view, the Dong et al. paper represents a strong case for increased transparency through measures like preregistered analysis plans, public preprints of manuscripts, published analysis code and openly-available data. Without such requirements it will be difficult to combat the “reproducibility crisis” that is negatively impacting the public’s perception of science.
+Nevertheless, there are deeper statistical issues regarding these models and the analysis presented by Dong et al. For example, it is questionable to model the extreme values of a distribution such as age-at-death by assuming linearity and Gaussian noise (Coles, 2001). Even if one accepts this as a valid modeling framework however, a model comparison like we performed here should have clearly been part of the Dong et al. paper. 
 
 
 # References
