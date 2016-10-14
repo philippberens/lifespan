@@ -12,10 +12,12 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 
 library(ggplot2)
-library(plyr)
+library(dplyr)
 library(rstan)
 library(rstanarm)
 library(BayesFactor)
+library(XML)
+library(stringr) 
 ```
 
 Dong et al. claim to present statistical evidence in favor of an absolute limit to the human lifespan. Here we present a reanalysis of a central figure in their paper showing that in fact the data is uninformative with regards to the question whether there is a limit to human lifespan or not. 
@@ -311,6 +313,174 @@ What about the other model comparison metrics?
 The AIC difference between the models is `r signif(AIC(ext_mdl1) - AIC(ext_mdl2), digits=2)`, which corresponds to "considerably less" support for the simple linear model relative to the authors' model.
 The BIC difference is `r signif(BIC(ext_mdl1) - BIC(ext_mdl2), digits=2)`, which provides "positive evidence" (Raftery, 1995) in support of the authors' model.
 Finally, the Bayes factor computed as above is about 8.8, which also provides positive support for the authors' model.
+
+# Recovering missing data
+
+In collaboration with [Adam Lenart](http://www.sdu.dk/staff/alenart), we recovered the full dataset from the Gerontology Research Group website ((http://www.grg.org/Adams/A.HTM). 
+This is a dataset of "verified supercentenarians" as of January 1, 2014.
+
+```{r pull_grg_data, echo=FALSE, warning=FALSE}
+# This code thanks to Adam Lenart
+
+# read data in
+theurl <- "http://www.grg.org/Adams/A_files/sheet001.htm"
+tables <- readHTMLTable(theurl,header=TRUE,skip.rows=1:12)
+dat <- tables[[1]][1:1627,]
+
+# format data set
+dat$Birthpl <- as.character(dat$Birthplace)
+dat$Deathpl <- as.character(dat$"Residence/Place of death")
+removeParsQM <- function(x)  unlist(strsplit(x,split=" \\(|\\?"))[1]
+
+dat$BirthC <- sapply(FUN=removeParsQM,X=dat$Birthpl)
+dat$DeathC <- sapply(FUN=removeParsQM,X=dat$Deathpl)
+dat$Dead <- ifelse(dat$Died=="",yes=1,no=0)
+dat$Age <- as.numeric(as.character(dat$Years))+(as.numeric(as.character(dat$Days))+0.5)/365.25
+dat2 <- dat
+
+# ---------------- Date of Death ------------------- #
+
+Sys.setlocale("LC_TIME", 'English')
+dD <- as.character(dat$Died)
+dD <- gsub("Sept.", "September", dD)
+deathDate <- as.Date(as.character(dD),"%b. %d, %Y")
+deathDate[is.na(deathDate)==TRUE] <-
+    as.Date(as.character(dD)[is.na(deathDate)==TRUE],"%B %d, %Y")
+dat$deathDate <- deathDate
+dat2$deathDatePX <- as.POSIXlt(deathDate)
+dat2$deathYear <- dat2$deathDatePX$year+1900 
+
+grg <- dat2
+
+# create group code:
+grg$Group <- factor(grg$deathYear>=1995, levels = c("FALSE", "TRUE"), labels = c("<1995", ">=1995"))
+
+# save to a binary:
+save(grg, file = "GRG_data.RData")
+write.csv2(grg, file = "GRG_data.csv")
+```
+
+Here's all the data. 
+The smoothing curve shows a local polynomial regression, and indicates an *upward* trend in age-at-death in recent years:
+
+```{r plot_all_grg, echo=FALSE}
+
+plt <- ggplot(grg, aes(x = deathYear, y = Age)) +
+  geom_point(alpha = 0.5) + 
+  stat_smooth(method = "loess")
+  
+plt
+```
+
+Now we can do the appropriate transformations and get the MRAD data. 
+Note that unlike in their analysis, here we're not rounding to the nearest year.
+
+```{r compute_mrad_grg}
+grg_mrad <- grg %>% 
+  select(-deathDatePX) %>% 
+  rename(Year = deathYear) %>% 
+  filter(Year >= 1950) %>% 
+  group_by(Year) %>% 
+  summarise(Age = max(Age)) %>% 
+  mutate(Group = factor(Year>=1995, 
+                        levels = c("FALSE", "TRUE"), 
+                        labels = c("<1995", ">=1995")))
+```
+
+and here's a plot of that MRAD data:
+
+```{r plot_grg_MRAD, echo=FALSE}
+plt <- ggplot(grg_mrad, aes(x = Year, y = Age)) +
+  geom_point(alpha = 0.5) + 
+  stat_smooth(method = "loess") + 
+  ylab("'Yearly maximum reported age at death (years)")
+  
+plt
+```
+
+There seem to be no shortage of datapoints between the years missing in the authors' plot.
+Note that the smooth indicates a downward trend in the maximum ages.
+
+We can now fit and compare the two candidate models for this dataset.
+
+```{r author_model_grg}
+
+grg_m1 <- lm(Age~Year*Group, grg_mrad)
+summary.lm(grg_m1)
+  
+# additionally show that you get the same model fit from this combined regression:
+blah <- grg_mrad
+blah$yhat <- predict(grg_m1)
+
+plt <- ggplot(blah, aes(x = Year, y = Age, colour = Group)) +
+  geom_point() + 
+  geom_line(aes(y = yhat)) + 
+  ylab('Yearly maximum reported age at death (years)') + 
+  ggtitle("Author model fit to GRG data")
+
+plt
+```
+
+```{r lin_model_grg, echo=FALSE}
+grg_m2 <- lm(Age~Year, grg_mrad)
+summary(grg_m2)
+anova(grg_m2, grg_m1)
+
+# grg_bf1 <- lmBF(Age~Year*Group, grg_mrad)
+# grg_bf2 <- lmBF(Age~Year, grg_mrad)
+# 
+# grg_bf1 / grg_bf2
+
+```
+
+Including the missing data from the table substantially increases support for the authors' model over a simple linear model.
+The ANOVA is highly significant; the AIC difference is `r signif(AIC(grg_m1) - AIC(grg_m2), digits=2)`, which corresponds to "essentially no" support for the simple linear model relative to the authors' model.
+The BIC difference is `r signif(BIC(grg_m1) - BIC(grg_m2), digits=2)`, which provides "very strong" (Raftery, 1995) support for the authors' model over the simple linear one.
+Finally, the Bayes factor computed as above is about TODO(fix error), which also provides positive support for the authors' model.
+
+## Outliers
+
+Because these are the most extreme values of a long-tailed distribution, they are subject to a great deal of observation noise (suggesting the assumption of Gaussian noise is unwarranted, see below).
+The decreasing trend line since 1995 seems to be driven largely by the 122-year-old who died in 1997, and the most recent death (112 years) in 2014.
+What happens to the model fits if we remove these two points?
+
+```{r outliers_trimmed}
+grg_mrad_trimmed <- grg_mrad %>% 
+  filter(Age != max(Age)) %>% 
+  filter(Year != 2014)
+
+grg_trimed_m1 <- lm(Age~Year*Group, grg_mrad_trimmed)
+grg_trimmed_m2 <- lm(Age~Year, grg_mrad_trimmed)
+
+anova(grg_trimmed_m2, grg_trimed_m1)
+
+# plot author model prediction
+blah <- grg_mrad_trimmed
+blah$yhat <- predict(grg_trimed_m1)
+
+plt <- ggplot(blah, aes(x = Year, y = Age, colour = Group)) +
+  geom_point() + 
+  geom_line(aes(y = yhat)) + 
+  ylab('Yearly maximum reported age at death (years)') + 
+  ggtitle("Author model fit to GRG data (outliers dropped)")
+
+plt
+
+```
+
+```{r outliers_bf, echo=FALSE}
+# grg_trimmed_bf1 <- lmBF(Age~Year*Group, grg_mrad_trimmed)
+# grg_trimmed_bf2 <- lmBF(Age~Year, grg_mrad_trimmed)
+# 
+# grg_trimmed_bf1 / grg_trimmed_bf2
+
+```
+
+Here, the authors' model is still supported by an ANOVA with p < .02.
+The AIC difference is `r signif(AIC(grg_trimed_m1) - AIC(grg_trimmed_m2), digits=2)`, which corresponds to "considerably less"" support for the linear model relative to the authors' model.
+The BIC difference is `r signif(BIC(grg_trimed_m1) - BIC(grg_trimmed_m2), digits=2)`, which provides "essentially no" (Raftery, 1995) support for the authors' model over the simple linear one.
+Finally, the Bayes factor computed as above is about TODO(fix error), which also provides positive support for the authors' model.
+
 
 # Conclusion
 

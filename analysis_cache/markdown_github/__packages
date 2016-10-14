@@ -6,3 +6,8 @@ rstanarm
 coda
 Matrix
 BayesFactor
+dplyr
+StanHeaders
+rstan
+XML
+stringr
