@@ -215,7 +215,7 @@ bf1 / bf2
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 1.244842 ±0.69%
+    ## [1] Year * Group : 1.251532 ±0.56%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
@@ -229,7 +229,7 @@ Changing the priors of BayesFactor from "medium" to "ultrawide" on the standardi
 Bayesian estimation of model parameters
 ---------------------------------------
 
-Here we take a Bayesian approach to model estimation, and fit the full linear model including interaction terms. We employ a Student-t prior with a mean of zero, standard deviation of 2.5 and five degrees of freedom, which yields modest shrinkage of the coefficients towards zero, i.e. enforcing some conservatism in inference.
+Here we take a Baysian approach to model estimation, and fit the full linear model including interaction terms. We employ a Student-t prior with a mean of zero, standard deviation of 2.5 and five degrees of freedom, which yields modest shrinkage of the coefficients towards zero, i.e. enforcing some conservatism in inference.
 
 We fit the models using the package `rstanarm`, which allows relatively straightforward use of Bayesian methods.
 
@@ -256,9 +256,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 1, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 1, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.723 seconds (Warm-up)
-    ##                0.658 seconds (Sampling)
-    ##                1.381 seconds (Total)
+    ##  Elapsed Time: 0.997176 seconds (Warm-up)
+    ##                0.986114 seconds (Sampling)
+    ##                1.98329 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 2).
@@ -275,9 +275,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 2, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 2, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 2, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.729 seconds (Warm-up)
-    ##                0.907 seconds (Sampling)
-    ##                1.636 seconds (Total)
+    ##  Elapsed Time: 1.07292 seconds (Warm-up)
+    ##                1.03415 seconds (Sampling)
+    ##                2.10707 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 3).
@@ -294,9 +294,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 3, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 3, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 3, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.683 seconds (Warm-up)
-    ##                0.648 seconds (Sampling)
-    ##                1.331 seconds (Total)
+    ##  Elapsed Time: 0.941915 seconds (Warm-up)
+    ##                1.00056 seconds (Sampling)
+    ##                1.94247 seconds (Total)
     ## 
     ## 
     ## SAMPLING FOR MODEL 'continuous' NOW (CHAIN 4).
@@ -313,9 +313,9 @@ bmdl <- stan_glm(Age~Year*Group, tbl,
     ## Chain 4, Iteration: 1600 / 2000 [ 80%]  (Sampling)
     ## Chain 4, Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 4, Iteration: 2000 / 2000 [100%]  (Sampling)
-    ##  Elapsed Time: 0.799 seconds (Warm-up)
-    ##                1.258 seconds (Sampling)
-    ##                2.057 seconds (Total)
+    ##  Elapsed Time: 0.959128 seconds (Warm-up)
+    ##                1.06912 seconds (Sampling)
+    ##                2.02825 seconds (Total)
 
 We can summarize the fitted model and plot the posterior density over the parameters:
 
@@ -335,11 +335,11 @@ bmdl
     ## 
     ## Estimates:
     ##                  Median MAD_SD
-    ## (Intercept)      -98.0  117.1 
+    ## (Intercept)      -91.3  116.1 
     ## Year               0.1    0.1 
-    ## Group>=1995        0.9    8.5 
+    ## Group>=1995        1.0    8.8 
     ## Year:Group>=1995   0.0    0.0 
-    ## sigma              2.2    0.3 
+    ## sigma              2.1    0.3 
     ## 
     ## Sample avg. posterior predictive 
     ## distribution of y (X = xbar):
@@ -348,7 +348,7 @@ bmdl
     ## 
     ## Observations: 33  Number of unconstrained parameters: 5
 
-Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.106) is similar to the estimated value above (0.153), but shrunken towards zero by the prior. The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
+Comparing the fitted model to the frequentist models above shows that the posterior median of the linear effect of Year (0.103) is similar to the estimated value above (0.153), but shrunken towards zero by the prior. The posterior density on the interaction term is centered around zero during inference, arguing that there is little evidence of a different slope after 1995. There is a small effect of the interaction term on the y-intercept, increasing the estimated y-intercept by 900. This is likely an artefact of the model parametrization.
 
 ``` r
 draws <- as.data.frame(as.matrix(bmdl))
@@ -381,8 +381,6 @@ We check certain properties of the Bayesian fitting procedures graphically:
 ``` r
 stan_diag(bmdl)
 ```
-
-    ## Warning: Removed 1 rows containing missing values (geom_bar).
 
 ![](analysis_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
@@ -430,7 +428,7 @@ The fitted model has a slope of 0.121 years for years before 1995 (their slope =
 
     ## Bayes factor analysis
     ## --------------
-    ## [1] Year * Group : 8.756212 ±1.03%
+    ## [1] Year * Group : 8.895818 ±1.12%
     ## 
     ## Against denominator:
     ##   Age ~ Year 
@@ -439,6 +437,160 @@ The fitted model has a slope of 0.121 years for years before 1995 (their slope =
 
 Here, the ANOVA analysis does provide support for the Dong et al model. What about the other model comparison metrics? The AIC difference between the models is -6.6, which corresponds to "considerably less" support for the simple linear model relative to the authors' model. The BIC difference is -3.3, which provides "positive evidence" (Raftery, 1995) in support of the authors' model. Finally, the Bayes factor computed as above is about 8.8, which also provides positive support for the authors' model.
 
+Recovering missing data
+=======================
+
+In collaboration with [Adam Lenart](http://www.sdu.dk/staff/alenart), we recovered the full dataset from the Gerontology Research Group website ((<http://www.grg.org/Adams/A.HTM>). This is a dataset of "verified supercentenarians" as of January 1, 2014.
+
+    ## [1] ""
+
+Here's all the data. The smoothing curve shows a local polynomial regression, and indicates an *upward* trend in age-at-death in recent years:
+
+    ## Warning: Removed 64 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 64 rows containing missing values (geom_point).
+
+![](analysis_files/figure-markdown_github/plot_all_grg-1.png)
+
+Now we can do the appropriate transformations and get the MRAD data. Note that unlike in their analysis, here we're not rounding to the nearest year.
+
+``` r
+grg_mrad <- grg %>% 
+  select(-deathDatePX) %>% 
+  rename(Year = deathYear) %>% 
+  filter(Year >= 1950) %>% 
+  group_by(Year) %>% 
+  summarise(Age = max(Age)) %>% 
+  mutate(Group = factor(Year>=1995, 
+                        levels = c("FALSE", "TRUE"), 
+                        labels = c("<1995", ">=1995")))
+```
+
+and here's a plot of that MRAD data:
+
+![](analysis_files/figure-markdown_github/plot_grg_MRAD-1.png)
+
+There seem to be no shortage of datapoints between the years missing in the authors' plot. Note that the smooth indicates a downward trend in the maximum ages.
+
+We can now fit and compare the two candidate models for this dataset.
+
+``` r
+grg_m1 <- lm(Age~Year*Group, grg_mrad)
+summary.lm(grg_m1)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = Age ~ Year * Group, data = grg_mrad)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -2.4173 -1.1761 -0.0075  0.6909  5.2793 
+    ## 
+    ## Coefficients:
+    ##                    Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)      -131.51932   52.23287  -2.518   0.0151 *  
+    ## Year                0.12348    0.02641   4.675 2.34e-05 ***
+    ## Group>=1995       584.32020  132.66852   4.404 5.75e-05 ***
+    ## Year:Group>=1995   -0.29154    0.06633  -4.396 5.92e-05 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 1.569 on 49 degrees of freedom
+    ## Multiple R-squared:  0.6291, Adjusted R-squared:  0.6064 
+    ## F-statistic:  27.7 on 3 and 49 DF,  p-value: 1.274e-10
+
+``` r
+# additionally show that you get the same model fit from this combined regression:
+blah <- grg_mrad
+blah$yhat <- predict(grg_m1)
+
+plt <- ggplot(blah, aes(x = Year, y = Age, colour = Group)) +
+  geom_point() + 
+  geom_line(aes(y = yhat)) + 
+  ylab('Yearly maximum reported age at death (years)') + 
+  ggtitle("Author model fit to GRG data")
+
+plt
+```
+
+![](analysis_files/figure-markdown_github/author_model_grg-1.png)
+
+    ## 
+    ## Call:
+    ## lm(formula = Age ~ Year, data = grg_mrad)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -4.7991 -1.1170 -0.2580  0.6088  7.5723 
+    ## 
+    ## Coefficients:
+    ##              Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept) -98.64102   31.84412  -3.098  0.00317 ** 
+    ## Year          0.10692    0.01602   6.674 1.78e-08 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 1.845 on 51 degrees of freedom
+    ## Multiple R-squared:  0.4662, Adjusted R-squared:  0.4557 
+    ## F-statistic: 44.54 on 1 and 51 DF,  p-value: 1.781e-08
+
+    ## Analysis of Variance Table
+    ## 
+    ## Model 1: Age ~ Year
+    ## Model 2: Age ~ Year * Group
+    ##   Res.Df    RSS Df Sum of Sq      F    Pr(>F)    
+    ## 1     51 173.57                                  
+    ## 2     49 120.61  2    52.961 10.758 0.0001339 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Including the missing data from the table substantially increases support for the authors' model over a simple linear model. The ANOVA is highly significant; the AIC difference is -15, which corresponds to "essentially no" support for the simple linear model relative to the authors' model. The BIC difference is -11, which provides "very strong" (Raftery, 1995) support for the authors' model over the simple linear one. Finally, the Bayes factor computed as above is about TODO(fix error), which also provides positive support for the authors' model.
+
+Outliers
+--------
+
+Because these are the most extreme values of a long-tailed distribution, they are subject to a great deal of observation noise (suggesting the assumption of Gaussian noise is unwarranted, see below). The decreasing trend line since 1995 seems to be driven largely by the 122-year-old who died in 1997, and the most recent death (112 years) in 2014. What happens to the model fits if we remove these two points?
+
+``` r
+grg_mrad_trimmed <- grg_mrad %>% 
+  filter(Age != max(Age)) %>% 
+  filter(Year != 2014)
+
+grg_trimed_m1 <- lm(Age~Year*Group, grg_mrad_trimmed)
+grg_trimmed_m2 <- lm(Age~Year, grg_mrad_trimmed)
+
+anova(grg_trimmed_m2, grg_trimed_m1)
+```
+
+    ## Analysis of Variance Table
+    ## 
+    ## Model 1: Age ~ Year
+    ## Model 2: Age ~ Year * Group
+    ##   Res.Df    RSS Df Sum of Sq      F  Pr(>F)  
+    ## 1     49 92.819                              
+    ## 2     47 78.968  2    13.851 4.1218 0.02242 *
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+# plot author model prediction
+blah <- grg_mrad_trimmed
+blah$yhat <- predict(grg_trimed_m1)
+
+plt <- ggplot(blah, aes(x = Year, y = Age, colour = Group)) +
+  geom_point() + 
+  geom_line(aes(y = yhat)) + 
+  ylab('Yearly maximum reported age at death (years)') + 
+  ggtitle("Author model fit to GRG data (outliers dropped)")
+
+plt
+```
+
+![](analysis_files/figure-markdown_github/outliers_trimmed-1.png)
+
+Here, the authors' model is still supported by an ANOVA with p &lt; .02. The AIC difference is -4.2, which corresponds to "considerably less"" support for the linear model relative to the authors' model. The BIC difference is -0.38, which provides "essentially no" (Raftery, 1995) support for the authors' model over the simple linear one. Finally, the Bayes factor computed as above is about TODO(fix error), which also provides positive support for the authors' model.
+
 Conclusion
 ==========
 
@@ -446,12 +598,14 @@ The model comparison metrics presented here, using both Frequentist, information
 
 The MRAD data from an independent source provided in Extended Data Figure 6 *does* provide some evidence in favour of the Dong et al "trend break" model, with one important caveat: data for the years 1989--1996 are missing from the authors' plot. Since this data spans the key years of the "break", they could have an important influence on these conclusions. The Dong et al paper does not clarify why this data is missing from the authors' plot (compare to data table online [here](http://www.grg.org/Adams/A.HTM), assuming that this is the source of the data the authors use).
 
-Finally, there are deeper statistical issues regarding the model presented by Dong et al. For example, it is questionable to model the extreme values of a distribution such as age-at-death by assuming linearity and Gaussian noise. Even if one accepts this as a valid modeling framework however, the analysis presented by Dong et al. fails to present evidence that maximum lifespan has not been increasing since the mid-nineties. Ultimately, we are agnostic as to whether there is an absolute limit to the human lifespan (as argued by Dong et al.) or not – we are not agnostic, however, regarding the standards that statistical reasoning and reporting should be held to. In our view, the Dong et al. paper represents a strong case for increased transparency through measures like preregistered analysis plans, public preprints of manuscripts, published analysis code and openly-available data. Without such requirements it will be difficult to combat the “reproducibility crisis” that is negatively impacting the public’s perception of science.
+Finally, there are deeper statistical issues regarding the model presented by Dong et al. For example, it is questionable to model the extreme values of a distribution such as age-at-death by assuming linearity and Gaussian noise (Coles, 2001). Even if one accepts this as a valid modeling framework however, the analysis presented by Dong et al. fails to present evidence that maximum lifespan has not been increasing since the mid-nineties. Ultimately, we are agnostic as to whether there is an absolute limit to the human lifespan (as argued by Dong et al.) or not – we are not agnostic, however, regarding the standards that statistical reasoning and reporting should be held to. In our view, the Dong et al. paper represents a strong case for increased transparency through measures like preregistered analysis plans, public preprints of manuscripts, published analysis code and openly-available data. Without such requirements it will be difficult to combat the “reproducibility crisis” that is negatively impacting the public’s perception of science.
 
 References
 ==========
 
 -   Burnham, K. P., & Anderson, D. R. (2002): Model selection and multimodel inference a practical information-theoretic approach. New York: Springer.
+
+-   Coles, S. (2001): An introduction to statistical modeling of extreme values. London: Springer.
 
 -   Kass, R. E., & Raftery, A. E. (1995). Bayes factors. Journal of the American Statistical Association, 90(430), 773–795.
 
