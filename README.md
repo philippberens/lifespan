@@ -3,7 +3,7 @@ Re-analysis of data from Dong et al.: [Evidence for a limit to human lifespan] (
 
 [Philipp Berens](http://www.berenslab.org) and [Tom Wallis](http://tomwallis.info)
 
-In their paper, Dong et al. claim to provide statistical evidence for an absolute limit to human lifespan. Here we re-analyze the data from their central figure and show that it is not suitable to decide between a model where maximum age at death keeps linearly increasing and one where it saturates or declines. 
+In their paper, Dong et al. claim to provide statistical evidence for an absolute limit to human lifespan. Here we re-analyze the data from their central figure using model comparison. The data from the central figure of the paper provides no support for or against their model of saturation / decline relative to a simple linear increase, but supplementary data recovered from [the Gerontological Research Group](http://www.grg.org/Adams/A.HTM) *does* provide evidence for their model. Nevertheless, it would be ultimately more appropriate to model these data using Extreme Value Theory. In our opinion, such statistical comparisons should have been part of the Dong et al. paper.
 
 For a detailed analysis, see our [R report](analysis.md).
 
