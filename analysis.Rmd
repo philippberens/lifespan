@@ -381,13 +381,41 @@ Here's a plot of that MRAD data:
 plt <- ggplot(grg_mrad, aes(x = Year, y = Age)) +
   geom_point(alpha = 0.5) + 
   stat_smooth(method = "loess") + 
-  ylab("'Yearly maximum reported age at death (years)")
+  ylab("Yearly maximum reported age at death (years)")
   
 plt
 ```
 
 There seem to be no shortage of datapoints between the years missing in the authors' plot.
 Note that the smooth indicates a downward trend in the maximum ages.
+
+The authors' Figure 2a shows MRAD computed from the [IDL Database](http://www.supercentenarians.org/), only for countries France, Japan, UK and US.
+The GRG dataset is worldwide. 
+How similar are the two datasets? 
+
+```{r compare_datasets, echo=FALSE}
+
+merge1 <- grg_mrad
+merge1$source <- "GRG"
+
+merge2 <- tbl
+merge2$source <- "IDL"
+
+merged <- rbind(merge1, merge2)
+
+# merged$Age <- round(merged$Age)
+
+ggplot(merged, aes(x = Year, y = Age, colour = source)) + 
+  geom_point(alpha = 0.7) + 
+  stat_smooth(method = "loess") + 
+  ylab("Yearly maximum reported age at death (years)")
+
+
+```
+
+Note the lack of rounding and wider range of years for the GRG set.
+
+## Fitting models to the GRG dataset
 
 We can now fit and compare the two candidate models for this dataset.
 
