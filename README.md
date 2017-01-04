@@ -11,7 +11,7 @@ In our opinion, such statistical comparisons should have been part of the Dong e
 
 Finally, Adam Lenart pointed out that the maximum over samples from some distribution depends on the number of samples [here](https://github.com/adamlenart/rstuff/blob/master/supercentenarian/sample_size.md). As the number of entries in the GRG database grows until the mid-ninties and is roughly constant since then, this likely explains the effect Dong et al. observe in our data. 
 
-A good collection of links can be found on [pubpeer](https://pubpeer.com/publications/48DAAE1F561C62D32E477F193462E4).
+A good collection of links can be found on [pubpeer](https://pubpeer.com/publications/48DAAE1F561C62D32E477F193462E4). This analysis has been covered by several blogs [here](https://nsaunders.wordpress.com/2016/12/18/evidence-for-a-limit-to-effective-peer-review/), [here](http://www.askaswiss.com/2016/11/is-there-really-evidence-for-limit-to-human-lifespan.html) and by Siddhartha Mukherjee in the online mag [TONIC](https://tonic.vice.com/en_us/article/how-far-can-we-push-the-limits-of-human-life).
 
 [![DOI](https://zenodo.org/badge/70421471.svg)](https://zenodo.org/badge/latestdoi/70421471)
 
